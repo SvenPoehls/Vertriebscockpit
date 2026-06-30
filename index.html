@@ -461,6 +461,10 @@
   }
   .todo-newinput::placeholder{ color:var(--muted); opacity:0.7; }
   .todo-newinput:focus{ color:var(--ink); }
+  .todo-editinput{
+    flex:1; border:1px solid var(--line); border-radius:5px; background:var(--surface); color:var(--ink);
+    font-size:13px; font-family:inherit; padding:3px 6px; outline:none;
+  }
   @media (max-width:760px){
     .stats-grid{ grid-template-columns:1fr 1fr; }
     .stats-cols{ grid-template-columns:1fr; }
@@ -1546,6 +1550,53 @@
     if (ordersChanged) persistOrders();
   }
 
+  function openChangeAccessCodeModal(){
+    var html = '<div class="modal-overlay" id="overlay"><div class="modal" style="max-width:380px;">' +
+      '<h2>Zugangscode ändern</h2>' +
+      '<div class="field-grid">' +
+        '<div class="field full"><label>Aktueller Zugangscode</label><input type="password" id="cc_current" autocomplete="off"></div>' +
+        '<div class="field full"><label>Neuer Zugangscode</label><input type="password" id="cc_new1" autocomplete="off"></div>' +
+        '<div class="field full"><label>Neuer Zugangscode wiederholen</label><input type="password" id="cc_new2" autocomplete="off"></div>' +
+      '</div>' +
+      '<div class="gate-error" id="cc_error" style="text-align:left; margin-top:4px;"></div>' +
+      '<div class="modal-actions">' +
+        '<button class="btn btn-ghost" id="cc_cancel">Abbrechen</button>' +
+        '<button class="btn btn-primary" id="cc_save">Speichern</button>' +
+      '</div>' +
+    '</div></div>';
+    document.getElementById('modalRoot').innerHTML = html;
+    document.getElementById('cc_cancel').addEventListener('click', closeModal);
+    document.getElementById('overlay').addEventListener('click', function(e){ if (e.target.id === 'overlay') closeModal(); });
+    document.getElementById('cc_save').addEventListener('click', function(){
+      var current = document.getElementById('cc_current').value;
+      var new1 = document.getElementById('cc_new1').value;
+      var new2 = document.getElementById('cc_new2').value;
+      var errorEl = document.getElementById('cc_error');
+      errorEl.textContent = '';
+
+      if (current !== currentAccessCode){
+        errorEl.textContent = 'Der aktuelle Zugangscode ist nicht korrekt.';
+        return;
+      }
+      if (!new1.trim()){
+        errorEl.textContent = 'Bitte einen neuen Zugangscode eingeben.';
+        return;
+      }
+      if (new1 !== new2){
+        errorEl.textContent = 'Die beiden neuen Codes stimmen nicht überein.';
+        return;
+      }
+      dbRef('config/zugangscode').set(new1).then(function(){
+        currentAccessCode = new1;
+        try { window.localStorage.setItem(GATE_KEY, new1); } catch (e) { /* Speicherung optional */ }
+        closeModal();
+        showToast('Zugangscode geändert — gilt sofort für alle Geräte');
+      }).catch(function(){
+        errorEl.textContent = 'Speichern fehlgeschlagen — Internetverbindung prüfen.';
+      });
+    });
+  }
+
   function openSettingsModal(){
     editingZName = null;
     renderSettingsModal();
@@ -1587,6 +1638,10 @@
         '<input type="text" id="sm_newz" placeholder="Name der/des Zuständigen" style="flex:1; border:1px solid var(--line); border-radius:6px; padding:8px;">' +
         '<button class="btn btn-primary btn-sm" id="sm_addz">Hinzufügen</button>' +
       '</div>' +
+      '<h4>Sicherheit</h4>' +
+      '<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px;">' +
+        '<button class="btn btn-ghost btn-sm" id="sm_changecode">Zugangscode ändern</button>' +
+      '</div>' +
       '<h4>Daten</h4>' +
       '<div style="display:flex; gap:8px; flex-wrap:wrap;">' +
         '<button class="btn btn-ghost btn-sm" id="sm_export">Backup exportieren</button>' +
@@ -1602,6 +1657,7 @@
 
     document.getElementById('sm_close').addEventListener('click', closeModal);
     document.getElementById('overlay').addEventListener('click', function(e){ if (e.target.id === 'overlay') closeModal(); });
+    document.getElementById('sm_changecode').addEventListener('click', openChangeAccessCodeModal);
     document.getElementById('sm_export').addEventListener('click', exportBackup);
     document.getElementById('sm_import').addEventListener('click', function(){
       document.getElementById('fileImport').click();
@@ -2563,9 +2619,10 @@
 
   function todoRowHtml(t){
     var dueHtml = (t.dueDate && (t.source === 'nachkauf' || t.source === 'leasingauslauf')) ? ' <span class="todo-due ' + todoDueClass(t) + '">' + fmtDate(t.dueDate) + '</span>' : '';
+    var editable = t.source === 'manuell';
     return '<div class="todo-row' + (t.done?' done':'') + '" data-todoid="' + t.id + '">' +
       '<input type="checkbox" data-todocheck="' + t.id + '"' + (t.done?' checked':'') + '>' +
-      '<span class="todo-text">' + escapeHtml(t.title) + dueHtml + '</span>' +
+      '<span class="todo-text"' + (editable ? ' data-todoedit="' + t.id + '" style="cursor:text;" title="Klicken zum Bearbeiten"' : '') + '>' + escapeHtml(t.title) + dueHtml + '</span>' +
       '<button class="todo-del" data-tododel="' + t.id + '" title="Löschen">✕</button>' +
     '</div>';
   }
@@ -2681,6 +2738,33 @@
         todos = todos.filter(function(x){ return x.id !== id; });
         persistTodos();
         renderTodos();
+      });
+    });
+    wrap.querySelectorAll('[data-todoedit]').forEach(function(span){
+      span.addEventListener('click', function(){
+        var id = span.getAttribute('data-todoedit');
+        var t = todos.find(function(x){ return x.id === id; });
+        if (!t) return;
+        var inp = document.createElement('input');
+        inp.type = 'text';
+        inp.value = t.title;
+        inp.className = 'todo-editinput';
+        span.replaceWith(inp);
+        inp.focus();
+        inp.select();
+        function commit(){
+          var val = inp.value.trim();
+          if (val && val !== t.title){
+            t.title = val;
+            persistTodos();
+          }
+          renderTodos();
+        }
+        inp.addEventListener('keydown', function(e){
+          if (e.key === 'Enter') commit();
+          if (e.key === 'Escape') renderTodos();
+        });
+        inp.addEventListener('blur', commit);
       });
     });
     wrap.querySelectorAll('[data-todonew]').forEach(function(inp){

@@ -1,0 +1,2889 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vertriebscockpit</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CjxyZWN0IHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgcng9IjE0IiBmaWxsPSIjRkZGRkZGIi8+CjxyZWN0IHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgcng9IjE0IiBmaWxsPSJub25lIiBzdHJva2U9IiNFMkRFRDQiIHN0cm9rZS13aWR0aD0iMiIvPgo8Y2lyY2xlIGN4PSIzMiIgY3k9IjMyIiByPSIxOSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMUIxRTI0IiBzdHJva2Utd2lkdGg9IjQiLz4KPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iNiIgZmlsbD0iI0U4ODYyRSIvPgo8bGluZSB4MT0iMzIiIHkxPSIxMyIgeDI9IjMyIiB5Mj0iMjQiIHN0cm9rZT0iIzFCMUUyNCIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPGxpbmUgeDE9IjE3IiB5MT0iNDEiIHgyPSIyNiIgeTI9IjM1IiBzdHJva2U9IiMxQjFFMjQiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CjxsaW5lIHgxPSI0NyIgeTE9IjQxIiB4Mj0iMzgiIHkyPSIzNSIgc3Ryb2tlPSIjMUIxRTI0IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8L3N2Zz4=">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+  :root{
+    --paper:#ECEEF0;
+    --panel:#FFFFFF;
+    --surface:#FFFFFF;
+    --surface-muted:#F8F9FA;
+    --track:#F0F1F3;
+    --ink:#1B1E24;
+    --muted:#6B7280;
+    --line:#D7DBDD;
+    --amber:#E8862E;
+    --amber-ink:#7A3D0A;
+    --teal:#1F6F6B;
+    --red:#C1432E;
+    --steel:#3D5A73;
+    --plum:#6B4C8A;
+    --greyblue:#7B8794;
+    --neu-color:#1C8FB0;
+    --kontaktiert-color:#4258C9;
+    --tint-steel:#EAF0F4;
+    --tint-amber:#FCEEDF;
+    --tint-teal:#E4F2F0;
+    --tint-plum:#EFEAF6;
+    --tint-grey:#EBEDEF;
+    --tint-danger:#FCEAE6;
+    --tint-danger-border:#F2C9BE;
+    --font-display:'Oswald',sans-serif;
+    --font-body:'Inter',system-ui,-apple-system,sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
+  }
+  [data-theme="dark"]{
+    --paper:#1B1D21;
+    --panel:#24262B;
+    --surface:#2C2F35;
+    --surface-muted:#23252A;
+    --track:#33363D;
+    --ink:#ECEEF0;
+    --muted:#9099A3;
+    --line:#3A3D44;
+    --tint-steel:rgba(61,90,115,.28);
+    --tint-amber:rgba(232,134,46,.20);
+    --tint-teal:rgba(31,111,107,.25);
+    --tint-plum:rgba(107,76,138,.28);
+    --tint-grey:rgba(167,177,188,.22);
+    --tint-danger:rgba(193,67,46,.22);
+    --tint-danger-border:rgba(193,67,46,.5);
+    --steel:#7FA6C9;
+    --amber-ink:#F2A35E;
+    --plum:#B594D6;
+    --teal:#4FBFB6;
+    --red:#E8897A;
+    --greyblue:#A7B1BC;
+    --neu-color:#52B8D9;
+    --kontaktiert-color:#8C9FEE;
+  }
+  [data-theme="dark"] .plate{ border-color:#14161A; }
+  [data-theme="dark"] .plate .txt{ color:#14161A; }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-size:14px;
+    line-height:1.45;
+  }
+  button, input, select, textarea{ font-family:inherit; font-size:inherit; }
+  button{ cursor:pointer; }
+  :focus-visible{ outline:2px solid var(--amber); outline-offset:2px; border-radius:3px; }
+  .wrap{ max-width:1280px; margin:0 auto; padding:24px 20px 60px; }
+
+  /* Header */
+  .hdr{ display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:18px; flex-wrap:wrap; }
+  .hdr h1{
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:26px;
+    letter-spacing:0.3px;
+    margin:0;
+    text-transform:uppercase;
+  }
+  .hdr .sub{ color:var(--muted); font-size:13px; margin-top:2px; }
+
+  /* Toolbar */
+  .toolbar{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px 16px;
+    margin-bottom:16px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    align-items:center;
+  }
+  .search{
+    flex:1 1 220px;
+    border:1px solid var(--line);
+    border-radius:7px;
+    padding:8px 10px;
+    background:var(--paper);
+  }
+  .chips{ display:flex; gap:6px; flex-wrap:wrap; }
+  .chip{
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--ink);
+    border-radius:20px;
+    padding:6px 12px;
+    font-size:12.5px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    white-space:nowrap;
+  }
+  .chip.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .chip .dot{ width:7px; height:7px; border-radius:50%; flex:none; }
+  select.zfilter{
+    border:1px solid var(--line);
+    border-radius:7px;
+    padding:8px 10px;
+    background:var(--paper);
+    color:var(--ink);
+  }
+  .spacer{ flex:1; }
+  .overdue-flag{
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--red);
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:var(--tint-danger);
+    border:1px solid var(--tint-danger-border);
+    padding:6px 12px;
+    border-radius:20px;
+  }
+  .btn{
+    border:none;
+    border-radius:7px;
+    padding:9px 16px;
+    font-weight:700;
+    font-size:13px;
+  }
+  .btn-primary{ background:var(--amber); color:#fff; }
+  .btn-primary:hover{ background:#D9772A; }
+  .btn-ghost{ background:transparent; color:var(--ink); border:1px solid var(--line); }
+  .btn-ghost:hover{ background:var(--paper); }
+  .btn-danger{ background:transparent; color:var(--red); border:1px solid #E8B6AC; }
+  .btn-danger:hover{ background:var(--tint-danger); }
+  .btn-sm{ padding:6px 11px; font-size:12px; border-radius:6px; }
+
+  /* Table */
+  .tablewrap{ background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  table{ width:100%; border-collapse:collapse; }
+  thead th{
+    text-align:left;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    color:var(--muted);
+    font-weight:700;
+    padding:10px 14px;
+    border-bottom:1px solid var(--line);
+    background:var(--surface-muted);
+  }
+  tbody tr.row{ border-bottom:1px solid var(--line); transition:background .12s; }
+  tbody tr.row:hover{ background:#FAFAFB; cursor:pointer; }
+  tbody tr.row td{ padding:11px 14px; vertical-align:middle; position:relative; }
+  tbody tr.row td:first-child{ padding-left:14px; }
+  .statusbar{
+    position:absolute; left:0; top:0; bottom:0; width:4px;
+  }
+  .status-label{ font-size:12px; font-weight:700; padding-left:10px; }
+  .kunde-name{ font-weight:700; }
+  .kunde-meta{ color:var(--muted); font-size:12px; margin-top:2px; font-family:var(--font-mono); }
+  .datetext{ font-family:var(--font-mono); font-size:12.5px; }
+  .wv-chip{ display:inline-block; padding:3px 10px; border-radius:20px; font-family:var(--font-mono); font-size:12px; font-weight:700; }
+  .wv-overdue{ background:var(--tint-danger); color:var(--red); }
+  .wv-today{ background:var(--tint-amber); color:var(--amber-ink); }
+  .wv-upcoming{ background:var(--tint-steel); color:var(--steel); }
+  .bk-chip{ display:inline-block; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700; }
+  .bk-recent{ background:var(--tint-teal); color:var(--teal); }
+  .bk-mid{ background:var(--tint-amber); color:var(--amber-ink); }
+  .bk-old{ background:var(--tint-danger); color:var(--red); }
+  .bk-vehicle-row{ display:flex; justify-content:space-between; align-items:center; padding:7px 10px; border:1px solid var(--line); border-radius:7px; background:var(--surface); margin-bottom:6px; }
+  .bk-namerow{
+    display:flex; align-items:center; justify-content:space-between; padding:13px 16px; border-bottom:1px solid var(--line);
+    cursor:pointer; background:var(--panel);
+  }
+  .bk-namerow:hover{ background:var(--surface-muted); }
+  .bk-detailpanel{ padding:16px 20px; background:var(--surface-muted); border-bottom:1px solid var(--line); }
+  .bk-detailpanel h4{ font-family:var(--font-display); text-transform:uppercase; font-size:12px; letter-spacing:0.5px; color:var(--muted); margin:0 0 10px; }
+  .name-suggestions{
+    position:absolute; left:0; right:0; top:100%; z-index:30; background:var(--surface); border:1px solid var(--line);
+    border-radius:8px; margin-top:4px; box-shadow:0 4px 14px rgba(0,0,0,.12); overflow:hidden; display:none;
+  }
+  .name-suggestions.show{ display:block; }
+  .name-suggestion-item{ padding:9px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--line); }
+  .name-suggestion-item:last-child{ border-bottom:none; }
+  .name-suggestion-item:hover{ background:var(--paper); }
+  .name-suggestion-item .ns-meta{ color:var(--muted); font-size:11.5px; margin-top:2px; }
+  .chevron{ color:var(--muted); transition:transform .15s; }
+  .chevron.open{ transform:rotate(90deg); }
+
+  /* Plate chip — signature element */
+  .plate{
+    display:inline-flex;
+    align-items:stretch;
+    border:2px solid var(--ink);
+    border-radius:5px;
+    overflow:hidden;
+    background:#fff;
+    box-shadow:0 1px 0 rgba(0,0,0,.05);
+  }
+  .plate .eu{
+    background:#1B3F8B;
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:2px 4px;
+    font-size:8px;
+    font-weight:700;
+    line-height:1;
+    gap:1px;
+  }
+  .plate .stars{ font-size:5px; letter-spacing:1px; opacity:.9; }
+  .plate .txt{
+    font-family:var(--font-mono);
+    font-weight:700;
+    letter-spacing:0.5px;
+    padding:3px 9px;
+    font-size:13px;
+    color:var(--ink);
+    white-space:nowrap;
+  }
+
+  /* Detail row */
+  tr.detail-row td{ padding:0; border-bottom:1px solid var(--line); }
+  .detail{ background:#F8F9FA; padding:18px 20px; display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  .detail h4{ font-family:var(--font-display); text-transform:uppercase; font-size:12px; letter-spacing:0.5px; color:var(--muted); margin:0 0 10px; }
+  .field-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+  .field{ display:flex; flex-direction:column; gap:4px; }
+  .field label{ font-size:11px; color:var(--muted); font-weight:600; }
+  .field input, .field select{
+    border:1px solid var(--line); border-radius:6px; padding:7px 9px; background:var(--surface); color:var(--ink);
+  }
+  .history{ display:flex; flex-direction:column; gap:10px; max-height:240px; overflow-y:auto; padding-right:4px; }
+  .history-item{ border-left:2px solid var(--line); padding-left:10px; }
+  .history-item .when{ font-family:var(--font-mono); font-size:11px; color:var(--muted); }
+  .history-item .what{ font-size:13px; margin-top:2px; }
+  .note-form{ display:flex; gap:8px; margin-top:10px; }
+  .note-form textarea{
+    flex:1; border:1px solid var(--line); border-radius:6px; padding:8px; resize:vertical; min-height:38px;
+  }
+  .detail-actions{ display:flex; justify-content:space-between; align-items:center; margin-top:16px; grid-column:1/-1; border-top:1px solid var(--line); padding-top:14px; }
+
+  /* Modal */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(20,22,26,.45); display:flex; align-items:center; justify-content:center; padding:20px; z-index:50;
+  }
+  .modal{
+    background:var(--surface); border-radius:12px; width:100%; max-width:560px; max-height:90vh; overflow-y:auto; padding:24px;
+  }
+  .modal h2{ font-family:var(--font-display); text-transform:uppercase; font-size:18px; margin:0 0 16px; }
+  .modal .field-grid{ grid-template-columns:1fr 1fr; }
+  .modal .field.full{ grid-column:1/-1; }
+  .modal-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
+
+  /* Empty / loading state */
+  .empty{ text-align:center; padding:60px 20px; color:var(--muted); }
+  .empty h3{ font-family:var(--font-display); text-transform:uppercase; color:var(--ink); font-size:16px; margin-bottom:6px; }
+  .loading{ text-align:center; padding:60px 20px; color:var(--muted); font-family:var(--font-mono); font-size:13px; }
+  .toast{
+    position:fixed; bottom:20px; right:20px; background:var(--ink); color:var(--paper); padding:10px 16px; border-radius:8px; font-size:13px; font-weight:600; opacity:0; transform:translateY(8px); transition:all .2s; pointer-events:none; z-index:80;
+  }
+  .toast.show{ opacity:1; transform:translateY(0); }
+
+  .footer-note{ text-align:center; color:var(--muted); font-size:11.5px; margin-top:28px; }
+
+  /* Startseite */
+  .hero{
+    background:linear-gradient(135deg, var(--ink) 0%, #2E3340 100%);
+    border-radius:14px; padding:36px 32px; color:#fff; margin-bottom:24px; margin-top:40px; position:relative; overflow:hidden;
+  }
+  [data-theme="dark"] .hero{ background:linear-gradient(135deg, #14161A 0%, #2C2F35 100%); }
+  .hero h1{ font-family:var(--font-display); text-transform:uppercase; font-size:26px; margin:0 0 6px; letter-spacing:0.3px; }
+  .hero p{ margin:0; opacity:0.8; font-size:13.5px; }
+  .hero .hero-date{ font-family:var(--font-mono); font-size:12px; opacity:0.65; margin-top:10px; }
+  .start-kpis{ display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:24px; align-items:start; }
+  .start-kpi{
+    background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; cursor:pointer; transition:transform .12s;
+  }
+  .start-kpi:hover{ transform:translateY(-2px); border-color:var(--amber); }
+  .start-kpi .kpi-label{ font-size:11px; text-transform:uppercase; letter-spacing:0.4px; color:var(--muted); font-weight:700; margin-bottom:6px; }
+  .start-kpi .kpi-value{ font-family:var(--font-display); font-size:30px; font-weight:600; line-height:1; }
+  .start-kpi-tall{ padding-bottom:18px; min-height:150px; }
+  .kpi-todo-breakdown{ margin-top:14px; padding-top:12px; border-top:1px solid var(--line); }
+  .kpi-todo-row{ display:flex; justify-content:space-between; font-size:12px; color:var(--muted); padding:3px 0; }
+  .kpi-todo-row span:last-child{ font-family:var(--font-mono); font-weight:700; color:var(--ink); }
+  .start-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px; }
+  .start-section{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:16px; }
+  .start-section h3{ font-family:var(--font-display); text-transform:uppercase; font-size:13px; letter-spacing:0.3px; margin:0 0 12px; }
+  .start-list-item{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--line); font-size:13px; }
+  .start-list-item:last-child{ border-bottom:none; }
+  @media (max-width:760px){
+    .start-kpis{ grid-template-columns:1fr 1fr; }
+  }
+  .footer-note button{ background:none; border:none; color:var(--muted); text-decoration:underline; font-size:11.5px; cursor:pointer; padding:0; }
+
+  /* Responsive: stack table as cards */
+  @media (max-width:760px){
+    thead{ display:none; }
+    tbody tr.row{ display:block; padding:12px 14px 12px 18px; position:relative; }
+    tbody tr.row td{ display:block; padding:3px 0; border:none; }
+    tbody tr.row td:first-child{ padding-left:0; }
+    .statusbar{ width:4px; }
+    td[data-label]::before{
+      content: attr(data-label);
+      display:block; font-size:10px; text-transform:uppercase; color:var(--muted); font-weight:700; margin-top:6px;
+    }
+    td[data-label="Kunde"]::before{ display:none; }
+    .detail{ grid-template-columns:1fr; }
+    .field-grid{ grid-template-columns:1fr; }
+    .modal .field-grid{ grid-template-columns:1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; }
+  }
+
+  /* Tabs */
+  .tabs{ display:flex; gap:4px; margin-bottom:16px; border-bottom:1px solid var(--line); }
+  .tab{
+    background:transparent; border:none; padding:10px 16px; font-weight:700; font-size:13px;
+    color:var(--muted); border-bottom:2px solid transparent; margin-bottom:-1px;
+  }
+  .tab.active{ color:var(--ink); border-bottom-color:var(--amber); }
+  .tab:hover{ color:var(--ink); }
+
+  /* Progress bar for Auftragsabwicklung */
+  .progress-wrap{ display:flex; align-items:center; gap:8px; min-width:140px; }
+  .progress-track{ flex:1; height:6px; background:var(--line); border-radius:4px; overflow:hidden; }
+  .progress-fill{ height:100%; background:var(--amber); border-radius:4px; }
+  .progress-fill.done{ background:var(--teal); }
+  .progress-text{ font-family:var(--font-mono); font-size:11.5px; color:var(--muted); white-space:nowrap; }
+
+  .auftrag-tag{
+    display:inline-block; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:20px;
+  }
+  .tag-bearbeitung{ background:var(--tint-steel); color:var(--steel); }
+  .tag-bereit{ background:var(--tint-amber); color:var(--amber-ink); }
+  .tag-ausgeliefert{ background:var(--tint-teal); color:var(--teal); }
+  .tag-fahrzeugtyp{ background:var(--tint-plum); color:var(--plum); }
+  .tag-typ-neu{ background:var(--tint-teal); color:var(--teal); }
+  .tag-typ-vorfuehrwagen{ background:var(--tint-plum); color:var(--plum); }
+  .tag-typ-gebraucht{ background:var(--tint-grey); color:var(--greyblue); }
+  .tag-zahlung-barkauf{ background:var(--tint-teal); color:var(--teal); }
+  .tag-zahlung-finanzierung{ background:var(--tint-steel); color:var(--steel); }
+  .tag-zahlung-leasing{ background:var(--tint-plum); color:var(--plum); }
+  .tag-privat{ background:var(--tint-steel); color:var(--steel); }
+  .tag-gewerbe{ background:var(--tint-amber); color:var(--amber-ink); }
+
+  .checklist{ display:flex; flex-direction:column; gap:8px; }
+  .checklist-group-label{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:var(--muted); font-weight:700;
+    margin-top:6px; margin-left:2px;
+  }
+  .checklist-item{
+    display:flex; align-items:center; gap:10px; padding:7px 10px; border:1px solid var(--line);
+    border-radius:7px; background:var(--surface);
+  }
+  .checklist-item.checked{ background:var(--tint-teal); border-color:var(--teal); }
+  .checklist-item input[type="checkbox"]{ width:16px; height:16px; flex:none; accent-color:var(--teal); }
+  .checklist-item label{ flex:1; font-size:13px; font-weight:600; }
+  .checklist-item input[type="date"]{
+    border:1px solid var(--line); border-radius:6px; padding:5px 7px; font-size:12px; font-family:var(--font-mono);
+  }
+  .checklist-item select{ border:1px solid var(--line); border-radius:6px; padding:5px 7px; font-size:12px; }
+  .step-assignee{ max-width:110px; background:var(--surface); color:var(--ink); flex:none; }
+  .lead-snapshot{
+    display:flex; flex-wrap:wrap; gap:18px; background:var(--surface); border:1px solid var(--line); border-radius:8px;
+    padding:12px 14px; padding-right:40px; margin-bottom:14px; font-size:13px; position:relative;
+  }
+  .lead-snapshot div b{ display:block; font-size:10px; text-transform:uppercase; color:var(--muted); font-weight:700; margin-bottom:2px; }
+  .snapshot-edit-btn{
+    position:absolute; right:10px; bottom:10px; width:26px; height:26px; border-radius:50%;
+    border:1px solid var(--line); background:var(--panel); color:var(--muted); font-size:12px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0;
+  }
+  .snapshot-edit-btn:hover{ background:var(--paper); color:var(--ink); }
+  .snapshot-edit-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; }
+  .snapshot-edit-grid .field label{ font-size:10px; text-transform:uppercase; color:var(--muted); font-weight:700; }
+  .snapshot-edit-actions{ display:flex; gap:8px; width:100%; margin-top:8px; }
+
+  /* Statistiken */
+  .stats-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:20px; }
+  .kpi-card{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; }
+  .kpi-card .kpi-label{ font-size:11px; text-transform:uppercase; letter-spacing:0.4px; color:var(--muted); font-weight:700; margin-bottom:6px; }
+  .kpi-card .kpi-value{ font-family:var(--font-display); font-size:28px; font-weight:600; line-height:1; }
+  .kpi-card .kpi-sub{ font-size:12px; color:var(--muted); margin-top:4px; }
+  .stats-section{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:16px; }
+  .stats-section h3{ font-family:var(--font-display); text-transform:uppercase; font-size:14px; letter-spacing:0.3px; margin:0 0 14px; }
+  .bar-row{ display:flex; align-items:center; gap:10px; margin-bottom:9px; }
+  .bar-row .bar-label{ width:150px; font-size:12.5px; font-weight:600; flex:none; }
+  .bar-row .bar-track{ flex:1; height:16px; background:var(--track); border-radius:4px; overflow:hidden; }
+  .bar-row .bar-fill{ height:100%; border-radius:4px; }
+  .bar-row .bar-value{ width:64px; text-align:right; font-family:var(--font-mono); font-size:12px; color:var(--muted); flex:none; }
+  .stats-table{ width:100%; border-collapse:collapse; font-size:13px; }
+  .stats-table th{ text-align:left; font-size:11px; text-transform:uppercase; color:var(--muted); padding:6px 10px; border-bottom:1px solid var(--line); }
+  .stats-table td{ padding:7px 10px; border-bottom:1px solid var(--line); }
+  .stats-cols{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .todo-board{ display:grid; gap:14px; align-items:start; }
+  .todo-col{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px; min-height:120px; }
+  .todo-col h3{ font-family:var(--font-display); text-transform:uppercase; font-size:13px; letter-spacing:0.3px; margin:0 0 12px; display:flex; align-items:center; justify-content:space-between; }
+  .todo-col h3 .count{ font-family:var(--font-mono); font-size:11px; color:var(--muted); font-weight:600; }
+  .todo-due{ font-size:11px; font-weight:700; display:inline-block; padding:2px 8px; border-radius:12px; }
+  .todo-due.due-overdue{ background:var(--tint-danger); color:var(--red); }
+  .todo-due.due-today{ background:var(--tint-amber); color:var(--amber-ink); }
+  .todo-due.due-future{ background:var(--tint-steel); color:var(--steel); }
+  .todo-empty{ color:var(--muted); font-size:12px; }
+  .todo-row{ display:flex; align-items:flex-start; gap:8px; padding:5px 2px; }
+  .todo-row input[type="checkbox"]{ margin-top:3px; width:15px; height:15px; accent-color:var(--teal); flex:none; }
+  .todo-row .todo-text{ flex:1; font-size:13px; line-height:1.4; }
+  .todo-row.done .todo-text{ text-decoration:line-through; color:var(--muted); }
+  .todo-row .todo-del{ background:none; border:none; color:var(--muted); cursor:pointer; font-size:12px; padding:0 2px; opacity:0; flex:none; }
+  .todo-row:hover .todo-del{ opacity:1; }
+  .todo-row .todo-del:hover{ color:var(--red); }
+  .todo-newinput{
+    width:100%; border:none; background:transparent; font-size:13px; padding:5px 2px; color:var(--muted);
+    font-family:inherit; outline:none;
+  }
+  .todo-newinput::placeholder{ color:var(--muted); opacity:0.7; }
+  .todo-newinput:focus{ color:var(--ink); }
+  @media (max-width:760px){
+    .stats-grid{ grid-template-columns:1fr 1fr; }
+    .stats-cols{ grid-template-columns:1fr; }
+    .bar-row .bar-label{ width:100px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <div>
+      <h1>Vertriebs-Cockpit</h1>
+      <div class="sub" id="syncStatus">🔄 Verbinde mit Live-Sync …</div>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <input type="file" id="fileImport" accept="application/json" style="display:none;">
+      <button class="btn btn-ghost" id="btnSettings" title="Einstellungen" style="font-size:16px; padding:9px 12px;">⚙️</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tabStart" data-view="start">Start</button>
+    <button class="tab" id="tabTodos" data-view="todos">To-Dos</button>
+    <button class="tab" id="tabLeads" data-view="leads">Leads</button>
+    <button class="tab" id="tabAuftraege" data-view="auftraege">Aufträge</button>
+    <button class="tab" id="tabBestandskunden" data-view="bestandskunden">Bestandskunden</button>
+    <button class="tab" id="tabStats" data-view="statistiken">Statistiken</button>
+  </div>
+
+  <section id="view-start">
+    <div id="startWrap"></div>
+  </section>
+
+  <section id="view-leads" style="display:none;">
+    <div class="toolbar">
+      <input type="text" class="search" id="search" placeholder="Suche nach Name, Fahrzeug, Telefon, E-Mail …">
+      <div class="chips" id="statusChips"></div>
+      <div class="spacer"></div>
+      <div class="overdue-flag" id="overdueFlag" style="display:none;"></div>
+      <button class="btn btn-primary" id="btnNew">+ Neuer Lead</button>
+    </div>
+
+    <div class="tablewrap" id="tableWrap">
+      <div class="loading">Lade Leads …</div>
+    </div>
+
+    <div class="footer-note" id="footerNote"></div>
+  </section>
+
+  <section id="view-auftraege" style="display:none;">
+    <div class="toolbar">
+      <input type="text" class="search" id="searchAuftrag" placeholder="Suche nach Name, Fahrzeug …">
+      <div class="chips" id="auftragChips"></div>
+      <div class="spacer"></div>
+      <button class="btn btn-ghost" id="btnNewAuftrag">+ Auftrag manuell anlegen</button>
+    </div>
+
+    <div class="tablewrap" id="auftragWrap">
+      <div class="loading">Lade Aufträge …</div>
+    </div>
+
+    <div class="footer-note" id="footerNoteAuftrag"></div>
+  </section>
+
+  <section id="view-bestandskunden" style="display:none;">
+    <div class="toolbar">
+      <input type="text" class="search" id="searchBestandskunden" placeholder="Suche nach Name, Telefon, Fahrzeug …">
+      <select class="zfilter" id="bkSortBy">
+        <option value="longest">Sortieren: am längsten kein Kauf</option>
+        <option value="recent">Sortieren: zuletzt gekauft</option>
+        <option value="name">Sortieren: Name (A–Z)</option>
+      </select>
+      <select class="zfilter" id="bkJahrFilter"><option value="">Alle Jahre</option></select>
+      <select class="zfilter" id="bkMonatFilter">
+        <option value="">Alle Monate</option>
+        <option value="1">Januar</option><option value="2">Februar</option><option value="3">März</option>
+        <option value="4">April</option><option value="5">Mai</option><option value="6">Juni</option>
+        <option value="7">Juli</option><option value="8">August</option><option value="9">September</option>
+        <option value="10">Oktober</option><option value="11">November</option><option value="12">Dezember</option>
+      </select>
+      <select class="zfilter" id="bkZahlungsartFilter">
+        <option value="">Alle Zahlungsarten</option>
+        <option value="barkauf">Verkauf (Barkauf)</option>
+        <option value="finanzierung">Finanzierung</option>
+        <option value="leasing">Leasing</option>
+      </select>
+      <div class="spacer"></div>
+    </div>
+    <div class="tablewrap" id="bkWrap">
+      <div class="loading">Lade Bestandskunden …</div>
+    </div>
+  </section>
+
+  <section id="view-todos" style="display:none;">
+    <div id="todosWrap"><div class="loading">Lade To-Dos …</div></div>
+  </section>
+
+  <section id="view-statistiken" style="display:none;">
+    <div id="statsWrap"><div class="loading">Lade Statistiken …</div></div>
+  </section>
+</div>
+
+<div id="modalRoot"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var firebaseConfig = {
+    apiKey: "AIzaSyDGije5V6_3tKYTaNCIY-AnOWqSKG2pmOo",
+    authDomain: "vertriebs-copilot.firebaseapp.com",
+    databaseURL: "https://vertriebs-copilot-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "vertriebs-copilot",
+    storageBucket: "vertriebs-copilot.firebasestorage.app",
+    messagingSenderId: "827274574386",
+    appId: "1:827274574386:web:5490412df034cd98901a2b"
+  };
+  var fbApp = null;
+  var fbDb = null;
+  try {
+    fbApp = firebase.initializeApp(firebaseConfig);
+    fbDb = firebase.database();
+  } catch (e) {
+    console.error('Firebase-Initialisierung fehlgeschlagen', e);
+  }
+  function dbRef(path){
+    if (!fbDb) throw new Error('Keine Verbindung zur Datenbank');
+    return fbDb.ref(path);
+  }
+  function setSyncStatus(text, ok){
+    var el = document.getElementById('syncStatus');
+    if (el){ el.textContent = text; el.style.color = ok ? 'var(--teal)' : 'var(--red)'; }
+  }
+  if (fbDb){
+    fbDb.ref('.info/connected').on('value', function(snap){
+      setSyncStatus(snap.val() ? '🟢 Live verbunden — Änderungen werden sofort geteilt' : '🟠 Verbindung wird hergestellt …', !!snap.val());
+    });
+  } else {
+    setSyncStatus('🔴 Keine Verbindung — Internet/Konfiguration prüfen', false);
+  }
+
+  var STATUS = {
+    neu:         { label:'Neu',                color:'var(--neu-color)' },
+    kontaktiert: { label:'Kontaktiert',         color:'var(--kontaktiert-color)' },
+    angebot:     { label:'Angebot verschickt',  color:'var(--amber)'    },
+    verhandlung: { label:'In Verhandlung',      color:'var(--plum)'     },
+    gewonnen:    { label:'Gewonnen',            color:'var(--teal)'     },
+    verloren:    { label:'Verloren',            color:'var(--red)'      }
+  };
+  var STATUS_ORDER = ['neu','kontaktiert','angebot','verhandlung','gewonnen','verloren'];
+  var QUELLEN = {
+    email:'Email', telefon:'Telefon', autocrm:'AutoCRM',
+    bestandskunde:'Bestandskunde', walkin:'Vor-Ort', sonstiges:'Sonstiges'
+  };
+
+  var STORAGE_KEY = 'leads';
+  var SETTINGS_KEY = 'einstellungen';
+  var settings = { theme:'hell', zustaendige:[], showSyncStatus:false };
+  var editingZName = null;
+  var ORDERS_KEY = 'auftraege';
+  var leads = [];
+  var orders = [];
+  var ordersLoaded = false;
+  var todos = [];
+  var todoRemovalTimers = {};
+  var todosLoaded = false;
+  var loaded = false;
+  var migrationDone = false;
+  var loadError = false;
+  var activeStatusFilter = '';
+  var overdueOnly = false;
+  var searchTerm = '';
+  var expandedId = null;
+  var currentView = 'start';
+  var expandedOrderId = null;
+  var activeAuftragFilter = '';
+  var auftragSearchTerm = '';
+
+  var ZAHLUNGSARTEN = { barkauf:'Barkauf', finanzierung:'Finanzierung', leasing:'Leasing' };
+  var FAHRZEUGTYPEN = { neu:'Neuwagen', vorfuehrwagen:'Vorführwagen', gebraucht:'Gebrauchtwagen' };
+  function fahrzeugtypTagClass(typ){ return 'tag-typ-' + (FAHRZEUGTYPEN[typ] ? typ : 'gebraucht'); }
+
+  var ORDER_STEPS = [
+    { key:'vertragVorhanden',          label:'Bankvertrag unterschrieben',       relevant: function(o){ return o.zahlungsart !== 'barkauf'; } },
+    { key:'bestellungUnterschrieben',  label:'Bestellung unterschrieben',        relevant: function(){ return true; }, hasDate:true },
+    { key:'fahrzeugAngeliefert',       label:'Fahrzeug angeliefert',             relevant: function(){ return true; } },
+    { key:'werkstattauftragGeschrieben', label:'Werkstattauftrag schreiben',     relevant: function(){ return true; }, assignable:true },
+    { key:'fahrzeugZugelassen',        label:'Fahrzeug zulassen',                relevant: function(){ return true; }, assignable:true },
+    { key:'aufbereitet',               label:'Aufbereitungsauftrag geschrieben', relevant: function(){ return true; }, assignable:true },
+    { key:'zahlungseingangGeprueft',   label:'Zahlungseingang prüfen',           relevant: function(){ return true; } },
+    { key:'ankaufsvertragAusgedruckt', label:'Ankaufsvertrag ausgedruckt',       relevant: function(o){ return !!o.eigenzulassung; } },
+    { key:'fahrzeugAusgeliefert',      label:'Auslieferungstermin festgelegt',   relevant: function(){ return true; }, hasDate:true, assignable:true }
+  ];
+
+  function uid(){
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+  }
+  function todayISO(){ return new Date().toISOString().slice(0,10); }
+  function addDaysISO(isoDate, days){
+    var d = isoDate ? new Date(isoDate + 'T00:00:00') : new Date();
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0,10);
+  }
+  function addMonthsISO(isoDate, months){
+    var d = isoDate ? new Date(isoDate + 'T00:00:00') : new Date();
+    d.setMonth(d.getMonth() + months);
+    return d.toISOString().slice(0,10);
+  }
+  var STANDARD_WIEDERVORLAGE_TAGE = 2;
+  function fmtDate(iso){
+    if(!iso) return '—';
+    var d = new Date(iso + 'T00:00:00');
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'});
+  }
+  function fmtDateTime(iso){
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' · ' +
+           d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+  }
+  function isOverdue(lead){
+    if (!lead.wiedervorlage) return false;
+    if (lead.status === 'gewonnen' || lead.status === 'verloren') return false;
+    return lead.wiedervorlage <= todayISO();
+  }
+  function isToday(lead){
+    return lead.wiedervorlage === todayISO();
+  }
+  function escapeHtml(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function showToast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._h);
+    t._h = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+  }
+
+  function loadLeads(){
+    try {
+      dbRef('leads').on('value', function(snapshot){
+        var val = snapshot.val();
+        leads = Array.isArray(val) ? val : (val ? Object.keys(val).map(function(k){ return val[k]; }) : []);
+        loaded = true;
+        render();
+        if (currentView === 'start') renderStart();
+        generateEskalationTodos();
+        maybeRunMigration();
+      }, function(error){
+        loaded = true;
+        showToast('Verbindung zu Leads verloren: ' + error.message);
+      });
+    } catch (e) {
+      leads = [];
+      loaded = true;
+      render();
+    }
+  }
+
+  async function persist(){
+    try {
+      await dbRef('leads').set(leads);
+      loadError = false;
+    } catch (e) {
+      loadError = true;
+      showToast('Speichern fehlgeschlagen — Internetverbindung prüfen');
+    }
+  }
+
+  function loadOrders(){
+    try {
+      dbRef('auftraege').on('value', function(snapshot){
+        var val = snapshot.val();
+        orders = Array.isArray(val) ? val : (val ? Object.keys(val).map(function(k){ return val[k]; }) : []);
+        ordersLoaded = true;
+        if (currentView === 'auftraege') renderOrders();
+        if (currentView === 'bestandskunden') renderBestandskunden();
+        if (currentView === 'statistiken') renderStats();
+        if (currentView === 'start') renderStart();
+        generateLeasingTodos();
+        maybeRunMigration();
+      }, function(error){
+        ordersLoaded = true;
+        showToast('Verbindung zu Aufträgen verloren: ' + error.message);
+      });
+    } catch (e) {
+      orders = [];
+      ordersLoaded = true;
+    }
+  }
+
+  async function persistOrders(){
+    try {
+      await dbRef('auftraege').set(orders);
+    } catch (e) {
+      showToast('Speichern fehlgeschlagen — Internetverbindung prüfen');
+    }
+  }
+
+  function loadTodos(){
+    try {
+      dbRef('todos').on('value', function(snapshot){
+        var val = snapshot.val();
+        todos = Array.isArray(val) ? val : (val ? Object.keys(val).map(function(k){ return val[k]; }) : []);
+        todosLoaded = true;
+        if (currentView === 'todos') renderTodos();
+        if (currentView === 'start') renderStart();
+        generateNachkaufTodos();
+        generateEskalationTodos();
+        generateLeasingTodos();
+      }, function(error){
+        todosLoaded = true;
+        showToast('Verbindung zu To-Dos verloren: ' + error.message);
+      });
+    } catch (e) {
+      todos = [];
+      todosLoaded = true;
+    }
+  }
+
+  async function persistTodos(){
+    try {
+      await dbRef('todos').set(todos);
+    } catch (e) {
+      showToast('Speichern fehlgeschlagen — Internetverbindung prüfen');
+    }
+  }
+
+  function loadSettings(){
+    try {
+      var raw = window.localStorage.getItem(SETTINGS_KEY);
+      if (raw){
+        var parsed = JSON.parse(raw);
+        settings.theme = parsed.theme === 'dunkel' ? 'dunkel' : 'hell';
+        settings.showSyncStatus = parsed.showSyncStatus === true;
+      }
+    } catch (e) { /* Standardwert beibehalten */ }
+    applyTheme();
+    applySyncStatusVisibility();
+    try {
+      dbRef('zustaendige').on('value', function(snapshot){
+        var val = snapshot.val();
+        settings.zustaendige = Array.isArray(val) ? val : (val ? Object.keys(val).map(function(k){ return val[k]; }) : []);
+      });
+    } catch (e) { /* ohne Verbindung bleibt die Liste leer */ }
+  }
+
+  function persistThemeLocal(){
+    try { window.localStorage.setItem(SETTINGS_KEY, JSON.stringify({ theme:settings.theme, showSyncStatus:settings.showSyncStatus })); }
+    catch (e) { /* Theme-Speicherung ist nicht kritisch */ }
+  }
+
+  function applySyncStatusVisibility(){
+    var el = document.getElementById('syncStatus');
+    if (el) el.style.display = settings.showSyncStatus ? '' : 'none';
+  }
+
+  async function persistZustaendige(){
+    try { await dbRef('zustaendige').set(settings.zustaendige); }
+    catch (e) { showToast('Zuständige konnten nicht gespeichert werden — Internetverbindung prüfen'); }
+  }
+
+  function applyTheme(){
+    document.documentElement.setAttribute('data-theme', settings.theme === 'dunkel' ? 'dark' : 'light');
+  }
+
+  function getZustaendigenOptions(){
+    var fromLeads = leads.map(function(l){ return l.zustaendig; }).filter(Boolean);
+    var all = settings.zustaendige.concat(fromLeads);
+    return Array.from(new Set(all)).sort(function(a,b){ return a.localeCompare(b,'de'); });
+  }
+
+  function maybeRunMigration(){
+    if (migrationDone || !loaded || !ordersLoaded) return;
+    migrationDone = true;
+    syncManualOrdersAsGewonnen();
+  }
+
+  function syncManualOrdersAsGewonnen(){
+    var leadsChanged = false;
+    var ordersChanged = false;
+    orders.forEach(function(o){
+      if (o.leadId){
+        var lead = leads.find(function(l){ return l.id === o.leadId; });
+        if (lead && lead.status !== 'gewonnen'){
+          lead.status = 'gewonnen';
+          addHistory(lead, 'Status geändert: Gewonnen (automatisch synchronisiert aus Auftragsabwicklung)');
+          leadsChanged = true;
+        }
+      } else {
+        // Kein Lead verknüpft (älterer, manuell angelegter Auftrag) -> nachträglich anlegen, damit der Verkauf in der Statistik auftaucht
+        var newLead = {
+          id: uid(), name:o.kunde, kategorie:o.kategorie||'privat', fahrzeugtyp:o.fahrzeugtyp||'gebraucht',
+          telefon:o.telefon||'', email:o.email||'', fahrzeug:o.fahrzeug, quelle:'sonstiges', status:'gewonnen',
+          erstkontakt: o.erstelltAm ? o.erstelltAm.slice(0,10) : todayISO(), wiedervorlage:'', zustaendig:o.zustaendig||'',
+          notizen:[], erstelltAm: o.erstelltAm || new Date().toISOString()
+        };
+        addHistory(newLead, 'Nachträglich angelegt zur Synchronisierung eines manuell erstellten Auftrags');
+        leads.push(newLead);
+        o.leadId = newLead.id;
+        leadsChanged = true;
+        ordersChanged = true;
+      }
+    });
+    if (leadsChanged) persist();
+    if (ordersChanged) persistOrders();
+    if (leadsChanged || ordersChanged){
+      render();
+      if (currentView === 'auftraege') renderOrders();
+      if (currentView === 'bestandskunden') renderBestandskunden();
+      if (currentView === 'statistiken') renderStats();
+    }
+  }
+
+  function addOrderHistory(order, text){
+    order.notizen = order.notizen || [];
+    order.notizen.unshift({ id: uid(), datum: new Date().toISOString(), text: text });
+  }
+
+  function addHistory(lead, text){
+    lead.notizen = lead.notizen || [];
+    lead.notizen.unshift({ id: uid(), datum: new Date().toISOString(), text: text });
+  }
+
+  function exportBackup(){
+    var payload = { leads: leads, orders: orders, exportedAt: new Date().toISOString() };
+    var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var stamp = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = 'vertriebs-cockpit-backup-' + stamp + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Backup heruntergeladen');
+  }
+
+  function importBackup(file){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      try {
+        var data = JSON.parse(e.target.result);
+        var newLeads, newOrders;
+        if (Array.isArray(data)){
+          // altes Format: nur Leads
+          newLeads = data; newOrders = [];
+        } else if (data && typeof data === 'object'){
+          newLeads = Array.isArray(data.leads) ? data.leads : [];
+          newOrders = Array.isArray(data.orders) ? data.orders : [];
+        } else {
+          throw new Error('ungültiges Format');
+        }
+        var hasExisting = leads.length || orders.length;
+        var replace = hasExisting
+          ? confirm('Bestehende Daten (' + leads.length + ' Leads, ' + orders.length + ' Aufträge) durch Backup ersetzen?\nAbbrechen = stattdessen zusammenführen.')
+          : true;
+        if (replace){
+          leads = newLeads; orders = newOrders;
+        } else {
+          var existingLeadIds = new Set(leads.map(function(l){ return l.id; }));
+          newLeads.forEach(function(l){ if (!existingLeadIds.has(l.id)) leads.push(l); });
+          var existingOrderIds = new Set(orders.map(function(o){ return o.id; }));
+          newOrders.forEach(function(o){ if (!existingOrderIds.has(o.id)) orders.push(o); });
+        }
+        persist();
+        persistOrders();
+        render();
+        renderOrders();
+        showToast('Backup importiert');
+      } catch (err){
+        showToast('Backup konnte nicht gelesen werden — falsches Format?');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // ---------- Mutations ----------
+  function createOrderFromLead(lead, zahlungsart){
+    var order = {
+      id: uid(),
+      leadId: lead.id,
+      kunde: lead.name,
+      kategorie: lead.kategorie || 'privat',
+      fahrzeugtyp: lead.fahrzeugtyp || 'gebraucht',
+      telefon: lead.telefon,
+      email: lead.email,
+      fahrzeug: lead.fahrzeug,
+      zustaendig: lead.zustaendig,
+      zahlungsart: zahlungsart || 'barkauf',
+      eigenzulassung: false,
+      inzahlungnahme: false,
+      vertragVorhanden: false,
+      bestellungUnterschrieben: false, bestellungUnterschriebenDatum:'',
+      fahrzeugAngeliefert: false, fahrzeugAngeliefertDatum:'',
+      werkstattauftragGeschrieben: false,
+      fahrzeugZugelassen: false, fahrzeugZugelassenDatum:'',
+      aufbereitet: false,
+      zahlungseingangGeprueft: false,
+      ankaufsvertragAusgedruckt: false,
+      fahrzeugAusgeliefert: false, fahrzeugAusgeliefertDatum:'',
+      stepAssignee: {},
+      notizen: [],
+      erstelltAm: new Date().toISOString(),
+      gewonnenAm: new Date().toISOString() // nur intern für Jahr/Monat-Auswertung (Statistiken/Bestandskunden), nicht im UI sichtbar
+    };
+    addOrderHistory(order, 'Auftrag automatisch aus Lead "' + lead.name + '" angelegt');
+    orders.unshift(order);
+    persistOrders();
+    return order;
+  }
+
+  function ensureOrderForLead(lead){
+    var existing = orders.find(function(o){ return o.leadId === lead.id; });
+    if (existing) return existing;
+    return createOrderFromLead(lead, 'barkauf');
+  }
+
+  async function createLead(data){
+    var lead = {
+      id: uid(),
+      name: data.name.trim(),
+      kategorie: data.kategorie || 'privat',
+      fahrzeugtyp: data.fahrzeugtyp || 'gebraucht',
+      telefon: data.telefon.trim(),
+      email: data.email.trim(),
+      fahrzeug: data.fahrzeug.trim(),
+      quelle: data.quelle,
+      erstkontakt: data.erstkontakt || todayISO(),
+      status: data.status || 'neu',
+      wiedervorlage: data.wiedervorlage || '',
+      zustaendig: (data.zustaendig || '').trim(),
+      notizen: [],
+      erstelltAm: new Date().toISOString()
+    };
+    addHistory(lead, 'Lead angelegt (Quelle: ' + (QUELLEN[lead.quelle] || lead.quelle) + ')');
+    if (data.notiz && data.notiz.trim()) addHistory(lead, data.notiz.trim());
+    leads.unshift(lead);
+    await persist();
+    render();
+    if (lead.status === 'gewonnen'){
+      ensureOrderForLead(lead);
+      showToast('Lead angelegt — Auftrag in der Auftragsabwicklung erstellt');
+    } else {
+      showToast('Lead angelegt');
+    }
+  }
+
+  async function updateLead(id, patch, historyText){
+    var lead = leads.find(function(l){ return l.id === id; });
+    if (!lead) return;
+    Object.assign(lead, patch);
+    if (historyText) addHistory(lead, historyText);
+    await persist();
+    render();
+  }
+
+  async function addNote(id, text){
+    var lead = leads.find(function(l){ return l.id === id; });
+    if (!lead || !text.trim()) return;
+    addHistory(lead, text.trim());
+    var rescheduled = false;
+    if (lead.status !== 'gewonnen' && lead.status !== 'verloren'){
+      lead.wiedervorlage = addDaysISO(todayISO(), STANDARD_WIEDERVORLAGE_TAGE);
+      addHistory(lead, 'Wiedervorlage automatisch auf ' + fmtDate(lead.wiedervorlage) + ' gesetzt (' + STANDARD_WIEDERVORLAGE_TAGE + '-Tage-Rhythmus)');
+      rescheduled = true;
+    }
+    await persist();
+    render();
+    showToast(rescheduled ? 'Notiz hinzugefügt — neue Wiedervorlage in ' + STANDARD_WIEDERVORLAGE_TAGE + ' Tagen' : 'Notiz hinzugefügt');
+  }
+
+  async function deleteLead(id){
+    leads = leads.filter(function(l){ return l.id !== id; });
+    if (expandedId === id) expandedId = null;
+    await persist();
+    render();
+    showToast('Lead gelöscht');
+  }
+
+  async function clearAll(){
+    if (!confirm('Wirklich ALLE Leads und Aufträge unwiderruflich löschen? Tipp: vorher ein Backup exportieren.')) return;
+    leads = [];
+    orders = [];
+    expandedId = null;
+    expandedOrderId = null;
+    await persist();
+    await persistOrders();
+    render();
+    if (currentView === 'auftraege') renderOrders();
+    if (currentView === 'bestandskunden') renderBestandskunden();
+    if (currentView === 'statistiken') renderStats();
+    closeModal();
+    showToast('Alle Daten gelöscht');
+  }
+
+  function loadDemoData(){
+    var demo = [
+      { name:'Sören Albrecht', kategorie:'privat',  telefon:'0151 2233445', email:'s.albrecht@web.de', fahrzeug:'VW Golf GTI', quelle:'autocrm', status:'angebot', tageVor:6, wvTageVor:-1, zustaendig:'Mara' },
+      { name:'Jasmin Keller',  kategorie:'privat',  telefon:'0170 9988776', email:'jasmin.k@gmx.de',   fahrzeug:'BMW 320d',    quelle:'autocrm', status:'kontaktiert', tageVor:2, wvTageVor:0, zustaendig:'Tim' },
+      { name:'Recep Yıldız',   kategorie:'privat',  telefon:'0162 5544332', email:'',                  fahrzeug:'Audi Q3',     quelle:'walkin', status:'verhandlung', tageVor:10, wvTageVor:2, zustaendig:'Mara' },
+      { name:'Petra Lindemann',kategorie:'privat',  telefon:'0176 1122334', email:'p.lindemann@t-online.de', fahrzeug:'Skoda Octavia Combi', quelle:'email', status:'neu', tageVor:0, wvTageVor:3, zustaendig:'' },
+      { name:'Finn Brauer',    kategorie:'privat',  telefon:'0151 7766554', email:'finn.brauer@icloud.com', fahrzeug:'Mercedes A 200', quelle:'bestandskunde', status:'gewonnen', tageVor:18, wvTageVor:null, zustaendig:'Tim' },
+      { name:'Bauer Logistik GmbH', kategorie:'gewerbe', telefon:'030 4455667', email:'einkauf@bauer-logistik.de', fahrzeug:'VW Crafter', quelle:'telefon', status:'gewonnen', tageVor:25, wvTageVor:null, zustaendig:'Mara' },
+      { name:'Theo Lemke',     kategorie:'privat',  telefon:'0151 3322110', email:'',                  fahrzeug:'Opel Corsa',  quelle:'sonstiges', status:'verloren', tageVor:14, wvTageVor:null, zustaendig:'Tim' }
+    ];
+    var now = new Date();
+    demo.forEach(function(d){
+      var ek = new Date(now); ek.setDate(ek.getDate() - d.tageVor);
+      var lead = {
+        id: uid(), name:d.name, kategorie:d.kategorie, telefon:d.telefon, email:d.email, fahrzeug:d.fahrzeug,
+        quelle:d.quelle, erstkontakt: ek.toISOString().slice(0,10), status:d.status,
+        wiedervorlage: d.wvTageVor == null ? '' : (function(){ var w=new Date(now); w.setDate(w.getDate()+d.wvTageVor); return w.toISOString().slice(0,10);})(),
+        zustaendig:d.zustaendig, notizen:[], erstelltAm: ek.toISOString()
+      };
+      addHistory(lead, 'Lead angelegt (Quelle: ' + (QUELLEN[lead.quelle]||lead.quelle) + ')');
+      leads.push(lead);
+    });
+    persist();
+    render();
+    closeModal();
+    switchView('leads');
+    showToast('Testdaten eingefügt');
+  }
+
+  // ---------- Rendering ----------
+  function getFiltered(){
+    return leads.filter(function(l){
+      if (l.status === 'verloren') return false; // verlorene Leads werden ausgeblendet
+      if (activeStatusFilter){
+        if (l.status !== activeStatusFilter) return false;
+      } else if (l.status === 'gewonnen') {
+        return false; // gewonnene Leads verschwinden aus der Standardansicht
+      }
+      if (overdueOnly && !isOverdue(l)) return false;
+      if (searchTerm){
+        var hay = (l.name+' '+l.fahrzeug+' '+l.telefon+' '+l.email).toLowerCase();
+        if (hay.indexOf(searchTerm.toLowerCase()) === -1) return false;
+      }
+      return true;
+    }).sort(function(a,b){
+      var aHas = a.wiedervorlage ? 0 : 1, bHas = b.wiedervorlage ? 0 : 1;
+      if (aHas !== bHas) return aHas - bHas; // Leads mit Wiedervorlage immer zuerst
+      if (a.wiedervorlage && b.wiedervorlage){
+        var ao = isOverdue(a) ? 0 : 1, bo = isOverdue(b) ? 0 : 1;
+        if (ao !== bo) return ao - bo;
+        return a.wiedervorlage < b.wiedervorlage ? -1 : (a.wiedervorlage > b.wiedervorlage ? 1 : 0);
+      }
+      return b.erstelltAm.localeCompare(a.erstelltAm);
+    });
+  }
+
+  function renderChips(){
+    var counts = {};
+    STATUS_ORDER.forEach(function(s){ counts[s] = 0; });
+    leads.forEach(function(l){ counts[l.status] = (counts[l.status]||0) + 1; });
+    var alleCount = leads.length - (counts.gewonnen || 0) - (counts.verloren || 0);
+    var html = '<button class="chip' + (activeStatusFilter===''?' active':'') + '" data-status="">Alle (' + alleCount + ')</button>';
+    STATUS_ORDER.filter(function(s){ return s !== 'verloren'; }).forEach(function(s){
+      html += '<button class="chip' + (activeStatusFilter===s?' active':'') + '" data-status="' + s + '">' +
+        '<span class="dot" style="background:' + STATUS[s].color + '"></span>' + STATUS[s].label + ' (' + counts[s] + ')</button>';
+    });
+    document.getElementById('statusChips').innerHTML = html;
+    document.querySelectorAll('#statusChips .chip').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        activeStatusFilter = btn.getAttribute('data-status');
+        render();
+      });
+    });
+  }
+
+  function renderOverdueFlag(){
+    var count = leads.filter(isOverdue).length;
+    var el = document.getElementById('overdueFlag');
+    if (count > 0){
+      el.style.display = 'flex';
+      el.innerHTML = '⏰ ' + count + ' fällige Wiedervorlage' + (count===1?'':'n');
+      el.style.cursor = 'pointer';
+      el.onclick = function(){ overdueOnly = !overdueOnly; render(); };
+      el.style.outline = overdueOnly ? '2px solid var(--red)' : 'none';
+    } else {
+      el.style.display = 'none';
+    }
+  }
+
+  function plateChip(fahrzeug){
+    if (!fahrzeug) return '<span style="color:var(--muted)">—</span>';
+    return '<span class="plate"><span class="eu"><span>D</span><span class="stars">★★★</span></span>' +
+      '<span class="txt">' + escapeHtml(fahrzeug) + '</span></span>';
+  }
+
+  function rowHtml(l){
+    var st = STATUS[l.status] || STATUS.neu;
+    var wvClass = isOverdue(l) ? 'wv-overdue' : (isToday(l) ? 'wv-today' : (l.wiedervorlage ? 'wv-upcoming' : ''));
+    var wvText = l.wiedervorlage ? fmtDate(l.wiedervorlage) + (isOverdue(l) ? ' · fällig' : (isToday(l)?' · heute':'')) : '';
+    var wvCell = l.wiedervorlage ? '<span class="wv-chip ' + wvClass + '">' + wvText + '</span>' : '<span style="color:var(--muted)">—</span>';
+    var open = expandedId === l.id;
+    var row =
+      '<tr class="row" data-id="' + l.id + '">' +
+        '<td><div class="statusbar" style="background:' + st.color + '"></div>' +
+          '<span class="status-label" style="color:' + st.color + '">' + st.label + '</span></td>' +
+        '<td data-label="Kunde"><div class="kunde-name">' + escapeHtml(l.name) +
+          ' <span class="auftrag-tag ' + (l.kategorie==='gewerbe'?'tag-gewerbe':'tag-privat') + '" style="margin-left:4px; vertical-align:middle;">' + (l.kategorie==='gewerbe'?'Gewerbe':'Privat') + '</span>' +
+          ' <span class="auftrag-tag ' + fahrzeugtypTagClass(l.fahrzeugtyp) + '" style="margin-left:2px; vertical-align:middle;">' + (FAHRZEUGTYPEN[l.fahrzeugtyp] || 'Gebrauchtwagen') + '</span></div>' +
+          '<div class="kunde-meta">' + escapeHtml(l.telefon || l.email || '') + '</div></td>' +
+        '<td data-label="Fahrzeug">' + plateChip(l.fahrzeug) + '</td>' +
+        '<td data-label="Quelle">' + escapeHtml(QUELLEN[l.quelle] || l.quelle || '—') + '</td>' +
+        '<td data-label="Erstkontakt" class="datetext">' + fmtDate(l.erstkontakt) + '</td>' +
+        '<td data-label="Wiedervorlage">' + wvCell + '</td>' +
+        '<td style="width:24px"><span class="chevron' + (open?' open':'') + '">›</span></td>' +
+      '</tr>';
+    if (open) row += detailHtml(l);
+    return row;
+  }
+
+  function detailHtml(l){
+    var statusOptions = STATUS_ORDER.map(function(s){
+      return '<option value="' + s + '"' + (s===l.status?' selected':'') + '>' + STATUS[s].label + '</option>';
+    }).join('');
+    var history = (l.notizen||[]).map(function(n){
+      return '<div class="history-item"><div class="when">' + fmtDateTime(n.datum) + '</div><div class="what">' + escapeHtml(n.text) + '</div></div>';
+    }).join('') || '<div style="color:var(--muted); font-size:12.5px;">Noch keine Einträge.</div>';
+
+    return '<tr class="detail-row" data-detail-for="' + l.id + '"><td colspan="8"><div class="detail">' +
+      '<div>' +
+        '<h4>Daten</h4>' +
+        '<div class="field-grid">' +
+          field('Telefon','tel','telefon',l.telefon) +
+          field('E-Mail','email','email',l.email) +
+          field('Fahrzeug','text','fahrzeug',l.fahrzeug) +
+          '<div class="field"><label>Status</label><select data-field="status">' + statusOptions + '</select></div>' +
+          field('Wiedervorlage','date','wiedervorlage',l.wiedervorlage) +
+          '<div class="field"><label>Kategorie</label><select data-field="kategorie">' +
+            '<option value="privat"' + (l.kategorie!=='gewerbe'?' selected':'') + '>Privatkunde</option>' +
+            '<option value="gewerbe"' + (l.kategorie==='gewerbe'?' selected':'') + '>Gewerbekunde</option>' +
+          '</select></div>' +
+          '<div class="field"><label>Fahrzeugtyp</label><select data-field="fahrzeugtyp">' +
+            Object.keys(FAHRZEUGTYPEN).map(function(k){ return '<option value="' + k + '"' + (l.fahrzeugtyp===k?' selected':(k==='gebraucht' && !l.fahrzeugtyp?' selected':'')) + '>' + FAHRZEUGTYPEN[k] + '</option>'; }).join('') +
+          '</select></div>' +
+        '</div>' +
+      '</div>' +
+      '<div>' +
+        '<h4>Kontakthistorie</h4>' +
+        '<div class="history">' + history + '</div>' +
+        '<div class="note-form"><textarea placeholder="Notiz hinzufügen, z. B. \'Angebot per E-Mail verschickt\' …" data-field="newnote"></textarea>' +
+        '<button class="btn btn-primary btn-sm" data-action="addnote">Hinzufügen</button></div>' +
+      '</div>' +
+      '<div class="detail-actions">' +
+        '<span style="color:var(--muted); font-size:12px;">Angelegt am ' + fmtDateTime(l.erstelltAm) + '</span>' +
+        '<div style="display:flex; gap:8px;">' +
+          '<button class="btn btn-danger btn-sm" data-action="delete">Lead löschen</button>' +
+          '<button class="btn btn-primary btn-sm" data-action="save">Änderungen speichern</button>' +
+        '</div>' +
+      '</div>' +
+    '</div></td></tr>';
+  }
+
+  function field(label, type, key, value){
+    return '<div class="field"><label>' + label + '</label><input type="' + type + '" data-field="' + key + '" value="' + escapeHtml(value||'') + '"></div>';
+  }
+
+  function render(){
+    renderChips();
+    renderOverdueFlag();
+
+    var wrap = document.getElementById('tableWrap');
+    if (!loaded){
+      wrap.innerHTML = '<div class="loading">Lade Leads …</div>';
+      return;
+    }
+    var filtered = getFiltered();
+    if (leads.length === 0){
+      wrap.innerHTML = '<div class="empty"><h3>Noch keine Leads erfasst</h3>' +
+        '<p>Leg deinen ersten Kontakt an, oder probier die Ansicht mit Testdaten aus.</p>' +
+        '<div style="display:flex; gap:10px; justify-content:center; margin-top:14px;">' +
+        '<button class="btn btn-primary" id="emptyNew">+ Neuer Lead</button>' +
+        '<button class="btn btn-ghost" id="emptyDemo">Testdaten einfügen</button></div></div>';
+      document.getElementById('emptyNew').addEventListener('click', openNewModal);
+      document.getElementById('emptyDemo').addEventListener('click', loadDemoData);
+    } else if (filtered.length === 0){
+      wrap.innerHTML = '<div class="empty"><h3>Keine Treffer</h3><p>Keine Leads entsprechen den aktuellen Filtern.</p></div>';
+    } else {
+      wrap.innerHTML =
+        '<table><thead><tr>' +
+          '<th>Status</th><th>Kunde</th><th>Fahrzeug</th><th>Quelle</th><th>Erstkontakt</th><th>Wiedervorlage</th><th></th>' +
+        '</tr></thead><tbody>' + filtered.map(rowHtml).join('') + '</tbody></table>';
+
+      document.querySelectorAll('tr.row').forEach(function(tr){
+        tr.addEventListener('click', function(e){
+          var id = tr.getAttribute('data-id');
+          expandedId = (expandedId === id) ? null : id;
+          render();
+        });
+      });
+      var detailRow = document.querySelector('tr.detail-row');
+      if (detailRow) wireDetail(detailRow);
+    }
+
+    document.getElementById('footerNote').innerHTML = '';
+  }
+
+  function wireDetail(detailRow){
+    var id = detailRow.getAttribute('data-detail-for');
+    detailRow.addEventListener('click', function(e){ e.stopPropagation(); });
+    var saveBtn = detailRow.querySelector('[data-action="save"]');
+    saveBtn.addEventListener('click', function(){
+      var patch = {};
+      detailRow.querySelectorAll('[data-field]').forEach(function(el){
+        if (el.getAttribute('data-field') !== 'newnote') patch[el.getAttribute('data-field')] = el.value;
+      });
+      var lead = leads.find(function(l){ return l.id === id; });
+      var statusChanged = lead && lead.status !== patch.status;
+      var becameWon = statusChanged && patch.status === 'gewonnen';
+      var becameLost = statusChanged && patch.status === 'verloren';
+      var alreadyHasOrder = orders.some(function(o){ return o.leadId === id; });
+
+      if (becameWon && !alreadyHasOrder){
+        openWinModal(lead, patch);
+        return;
+      }
+
+      var hist = statusChanged ? ('Status geändert: ' + STATUS[patch.status].label) : null;
+      updateLead(id, patch, hist).then(function(){
+        if (becameWon){
+          var updatedLead = leads.find(function(l){ return l.id === id; });
+          ensureOrderForLead(updatedLead);
+        }
+        showToast(becameLost ? 'Als verloren markiert' : 'Gespeichert');
+      });
+    });
+    var noteBtn = detailRow.querySelector('[data-action="addnote"]');
+    noteBtn.addEventListener('click', function(){
+      var ta = detailRow.querySelector('[data-field="newnote"]');
+      addNote(id, ta.value);
+    });
+    var delBtn = detailRow.querySelector('[data-action="delete"]');
+    delBtn.addEventListener('click', function(){
+      if (confirm('Diesen Lead unwiderruflich löschen?')) deleteLead(id);
+    });
+  }
+
+  // ---------- New Lead Modal ----------
+  function openNewModal(prefill){
+    prefill = prefill || {};
+    var html =
+      '<div class="modal-overlay" id="overlay"><div class="modal">' +
+        '<h2>Neuer Lead</h2>' +
+        '<div class="field-grid">' +
+          '<div class="field full" style="position:relative;"><label>Name *</label><input type="text" id="m_name" required autocomplete="off" value="' + escapeHtml(prefill.name||'') + '">' +
+            '<div id="m_name_suggestions" class="name-suggestions"></div></div>' +
+          '<div class="field"><label>Kategorie</label><select id="m_kategorie">' +
+            '<option value="privat">Privatkunde</option><option value="gewerbe">Gewerbekunde</option>' +
+          '</select></div>' +
+          '<div class="field"><label>Fahrzeugtyp</label><select id="m_fahrzeugtyp">' +
+            Object.keys(FAHRZEUGTYPEN).map(function(k){ return '<option value="' + k + '"' + (k==='neu'?' selected':'') + '>' + FAHRZEUGTYPEN[k] + '</option>'; }).join('') +
+          '</select></div>' +
+          '<div class="field"><label>Telefon</label><input type="tel" id="m_telefon" value="' + escapeHtml(prefill.telefon||'') + '"></div>' +
+          '<div class="field"><label>E-Mail</label><input type="email" id="m_email" value="' + escapeHtml(prefill.email||'') + '"></div>' +
+          '<div class="field full"><label>Fahrzeug *</label><input type="text" id="m_fahrzeug" placeholder="z. B. VW Golf GTI" required></div>' +
+          '<div class="field"><label>Quelle</label><select id="m_quelle">' +
+            Object.keys(QUELLEN).map(function(k){ return '<option value="' + k + '"' + (prefill.quelle===k?' selected':'') + '>' + QUELLEN[k] + '</option>'; }).join('') +
+          '</select></div>' +
+          '<div class="field"><label>Status</label><select id="m_status">' +
+            STATUS_ORDER.map(function(s){ return '<option value="' + s + '">' + STATUS[s].label + '</option>'; }).join('') +
+          '</select></div>' +
+          '<div class="field"><label>Erstkontakt</label><input type="date" id="m_erstkontakt" value="' + todayISO() + '"></div>' +
+          '<div class="field"><label>Wiedervorlage</label><input type="date" id="m_wiedervorlage" value="' + addDaysISO(todayISO(), STANDARD_WIEDERVORLAGE_TAGE) + '"></div>' +
+          '<div class="field full"><label>Notiz (optional)</label><input type="text" id="m_notiz" placeholder="z. B. erste Anfrage zu Ausstattung & Preis"></div>' +
+        '</div>' +
+        '<div class="modal-actions">' +
+          '<button class="btn btn-ghost" id="m_cancel">Abbrechen</button>' +
+          '<button class="btn btn-primary" id="m_save">Lead anlegen</button>' +
+        '</div>' +
+      '</div></div>';
+    document.getElementById('modalRoot').innerHTML = html;
+    document.getElementById('m_cancel').addEventListener('click', closeModal);
+    document.getElementById('overlay').addEventListener('click', function(e){ if (e.target.id === 'overlay') closeModal(); });
+    document.getElementById('m_save').addEventListener('click', function(){
+      var name = document.getElementById('m_name').value.trim();
+      var fahrzeug = document.getElementById('m_fahrzeug').value.trim();
+      if (!name || !fahrzeug){ showToast('Name und Fahrzeug sind erforderlich'); return; }
+      createLead({
+        name:name,
+        kategorie: document.getElementById('m_kategorie').value,
+        fahrzeugtyp: document.getElementById('m_fahrzeugtyp').value,
+        telefon: document.getElementById('m_telefon').value,
+        email: document.getElementById('m_email').value,
+        fahrzeug:fahrzeug,
+        quelle: document.getElementById('m_quelle').value,
+        status: document.getElementById('m_status').value,
+        erstkontakt: document.getElementById('m_erstkontakt').value,
+        wiedervorlage: document.getElementById('m_wiedervorlage').value,
+        notiz: document.getElementById('m_notiz').value
+      });
+      closeModal();
+    });
+    var wvTouched = false;
+    document.getElementById('m_wiedervorlage').addEventListener('input', function(){ wvTouched = true; });
+    document.getElementById('m_erstkontakt').addEventListener('change', function(e){
+      if (!wvTouched){
+        document.getElementById('m_wiedervorlage').value = addDaysISO(e.target.value, STANDARD_WIEDERVORLAGE_TAGE);
+      }
+    });
+
+    // Bestandskunden-Erkennung: schon vorbefüllt (z. B. aus dem Bestandskunden-Tab) -> nicht erneut fragen
+    if (!prefill.name){
+      function applyBkMatch(match){
+        if (match.telefon) document.getElementById('m_telefon').value = match.telefon;
+        if (match.email) document.getElementById('m_email').value = match.email;
+        document.getElementById('m_quelle').value = 'bestandskunde';
+      }
+
+      var suggestBox = document.getElementById('m_name_suggestions');
+      document.getElementById('m_name').addEventListener('input', function(e){
+        var typed = e.target.value.trim();
+        if (typed.length < 2){ suggestBox.classList.remove('show'); suggestBox.innerHTML = ''; return; }
+        var matches = buildBestandskunden().filter(function(g){
+          return g.name && g.name.toLowerCase().indexOf(typed.toLowerCase()) !== -1;
+        }).slice(0, 5);
+        if (matches.length === 0){ suggestBox.classList.remove('show'); suggestBox.innerHTML = ''; return; }
+        suggestBox.innerHTML = matches.map(function(g){
+          var sub = g.purchases.length
+            ? g.purchases.length + ' Fahrzeug' + (g.purchases.length===1?'':'e') + (g.telefon ? ' · ' + escapeHtml(g.telefon) : '')
+            : 'Bestandskunde' + (g.telefon ? ' · ' + escapeHtml(g.telefon) : '');
+          return '<div class="name-suggestion-item" data-bkname="' + escapeHtml(g.name) + '">' + escapeHtml(g.name) +
+            '<div class="ns-meta">' + sub + '</div></div>';
+        }).join('');
+        suggestBox.classList.add('show');
+        suggestBox.querySelectorAll('[data-bkname]').forEach(function(item){
+          item.addEventListener('click', function(){
+            var name = item.getAttribute('data-bkname');
+            var match = buildBestandskunden().find(function(g){ return g.name === name; });
+            document.getElementById('m_name').value = name;
+            suggestBox.classList.remove('show');
+            suggestBox.innerHTML = '';
+            if (match) applyBkMatch(match);
+          });
+        });
+      });
+      document.getElementById('m_name').addEventListener('blur', function(){
+        setTimeout(function(){ suggestBox.classList.remove('show'); }, 150);
+      });
+
+      var askedNames = {};
+      document.getElementById('m_name').addEventListener('blur', function(e){
+        var typed = e.target.value.trim();
+        if (!typed || askedNames[typed.toLowerCase()]) return;
+        askedNames[typed.toLowerCase()] = true;
+        var match = buildBestandskunden().find(function(g){ return g.name && g.name.toLowerCase() === typed.toLowerCase(); });
+        if (!match) return;
+        openConfirmModal({
+          title:'Bestandskunde erkannt',
+          message:'"' + escapeHtml(typed) + '" ist bereits als Bestandskunde gespeichert. Hat diese Person schon ein Fahrzeug bei uns gekauft? Telefonnummer, E-Mail und Zuständigkeit werden dann automatisch übernommen.',
+          confirmLabel:'Ja, übernehmen',
+          cancelLabel:'Nein, neuer Kontakt',
+          onConfirm:function(){
+            applyBkMatch(match);
+            document.getElementById('m_name').focus();
+          }
+        });
+      });
+    }
+
+    document.getElementById('m_name').focus();
+  }
+  function openWinModal(lead, patch){
+    var html = '<div class="modal-overlay" id="overlay"><div class="modal">' +
+      '<h2>🎉 Lead gewonnen</h2>' +
+      '<p style="color:var(--muted); font-size:13px; margin-top:-8px;">Bevor der Auftrag angelegt wird, kurz die Eckdaten festlegen:</p>' +
+      '<div class="field-grid">' +
+        '<div class="field"><label>Zahlungsart</label><select id="wm_zahlungsart">' +
+          Object.keys(ZAHLUNGSARTEN).map(function(k){ return '<option value="' + k + '">' + ZAHLUNGSARTEN[k] + '</option>'; }).join('') +
+        '</select></div>' +
+        '<div class="field"><label>Eigenzulassung</label><select id="wm_eigenzulassung">' +
+          '<option value="false">Nein</option><option value="true">Ja</option>' +
+        '</select></div>' +
+        '<div class="field"><label>Inzahlungnahme</label><select id="wm_inzahlungnahme">' +
+          '<option value="false">Nein</option><option value="true">Ja</option>' +
+        '</select></div>' +
+      '</div>' +
+      '<div class="modal-actions">' +
+        '<button class="btn btn-ghost" id="wm_cancel">Abbrechen</button>' +
+        '<button class="btn btn-primary" id="wm_save">Speichern &amp; Auftrag anlegen</button>' +
+      '</div>' +
+    '</div></div>';
+    document.getElementById('modalRoot').innerHTML = html;
+    document.getElementById('wm_cancel').addEventListener('click', closeModal);
+    document.getElementById('overlay').addEventListener('click', function(e){ if (e.target.id === 'overlay') closeModal(); });
+    document.getElementById('wm_save').addEventListener('click', function(){
+      var zahlungsart = document.getElementById('wm_zahlungsart').value;
+      var eigenzulassung = document.getElementById('wm_eigenzulassung').value === 'true';
+      var inzahlungnahme = document.getElementById('wm_inzahlungnahme').value === 'true';
+      var hist = 'Status geändert: ' + STATUS.gewonnen.label;
+      updateLead(lead.id, patch, hist).then(function(){
+        var updatedLead = leads.find(function(l){ return l.id === lead.id; });
+        var order = createOrderFromLead(updatedLead, zahlungsart);
+        order.eigenzulassung = eigenzulassung;
+        order.inzahlungnahme = inzahlungnahme;
+        persistOrders();
+        closeModal();
+        showToast('Gespeichert — Auftrag in "Auftragsabwicklung" angelegt');
+      });
+    });
+  }
+
+  function renameZustaendiger(oldName, newName){
+    settings.zustaendige = settings.zustaendige.map(function(n){ return n === oldName ? newName : n; });
+    persistZustaendige();
+    var leadsChanged = false;
+    leads.forEach(function(l){ if (l.zustaendig === oldName){ l.zustaendig = newName; leadsChanged = true; } });
+    if (leadsChanged) persist();
+    var ordersChanged = false;
+    orders.forEach(function(o){ if (o.zustaendig === oldName){ o.zustaendig = newName; ordersChanged = true; } });
+    if (ordersChanged) persistOrders();
+  }
+
+  function openSettingsModal(){
+    editingZName = null;
+    renderSettingsModal();
+  }
+
+  function renderSettingsModal(){
+    var zList = settings.zustaendige.slice().sort(function(a,b){ return a.localeCompare(b,'de'); });
+    var zRows = zList.length
+      ? zList.map(function(name){
+          if (editingZName === name){
+            return '<div class="checklist-item">' +
+              '<input type="text" id="sm_editinput" value="' + escapeHtml(name) + '" style="flex:1; border:1px solid var(--line); border-radius:6px; padding:6px 8px; background:var(--surface); color:var(--ink);">' +
+              '<button class="btn btn-primary btn-sm" data-savez="' + escapeHtml(name) + '">Speichern</button>' +
+              '<button class="btn btn-ghost btn-sm" data-cancelz="1">Abbrechen</button></div>';
+          }
+          return '<div class="checklist-item"><label style="flex:1;">' + escapeHtml(name) + '</label>' +
+            '<button class="btn btn-ghost btn-sm" data-editz="' + escapeHtml(name) + '">Bearbeiten</button>' +
+            '<button class="btn btn-danger btn-sm" data-removez="' + escapeHtml(name) + '">Entfernen</button></div>';
+        }).join('')
+      : '<div style="color:var(--muted); font-size:12.5px;">Noch keine Zuständigen angelegt.</div>';
+
+    var html = '<div class="modal-overlay" id="overlay"><div class="modal">' +
+      '<h2>⚙️ Einstellungen</h2>' +
+      '<h4 style="margin-top:0;">Design</h4>' +
+      '<div style="display:flex; gap:10px; margin-bottom:18px;">' +
+        '<label class="checklist-item" style="flex:1; cursor:pointer;">' +
+          '<input type="radio" name="theme" value="hell"' + (settings.theme!=='dunkel'?' checked':'') + ' style="width:auto;">' +
+          '<span style="flex:1;">☀️ Hell</span></label>' +
+        '<label class="checklist-item" style="flex:1; cursor:pointer;">' +
+          '<input type="radio" name="theme" value="dunkel"' + (settings.theme==='dunkel'?' checked':'') + ' style="width:auto;">' +
+          '<span style="flex:1;">🌙 Dunkel</span></label>' +
+      '</div>' +
+      '<label class="checklist-item" style="cursor:pointer; margin-bottom:18px;">' +
+        '<input type="checkbox" id="sm_syncstatus"' + (settings.showSyncStatus?' checked':'') + ' style="width:auto;">' +
+        '<span style="flex:1;">Live-Sync-Status oben anzeigen</span></label>' +
+      '<h4>Zuständige verwalten</h4>' +
+      '<div class="checklist" id="zListWrap" style="margin-bottom:10px; max-height:200px; overflow-y:auto;">' + zRows + '</div>' +
+      '<div class="note-form">' +
+        '<input type="text" id="sm_newz" placeholder="Name der/des Zuständigen" style="flex:1; border:1px solid var(--line); border-radius:6px; padding:8px;">' +
+        '<button class="btn btn-primary btn-sm" id="sm_addz">Hinzufügen</button>' +
+      '</div>' +
+      '<h4>Daten</h4>' +
+      '<div style="display:flex; gap:8px; flex-wrap:wrap;">' +
+        '<button class="btn btn-ghost btn-sm" id="sm_export">Backup exportieren</button>' +
+        '<button class="btn btn-ghost btn-sm" id="sm_import">Backup importieren</button>' +
+        '<button class="btn btn-ghost btn-sm" id="sm_demo">Testdaten einfügen</button>' +
+        '<button class="btn btn-danger btn-sm" id="sm_clear">Alle Daten löschen</button>' +
+      '</div>' +
+      '<div class="modal-actions">' +
+        '<button class="btn btn-ghost" id="sm_close">Schließen</button>' +
+      '</div>' +
+    '</div></div>';
+    document.getElementById('modalRoot').innerHTML = html;
+
+    document.getElementById('sm_close').addEventListener('click', closeModal);
+    document.getElementById('overlay').addEventListener('click', function(e){ if (e.target.id === 'overlay') closeModal(); });
+    document.getElementById('sm_export').addEventListener('click', exportBackup);
+    document.getElementById('sm_import').addEventListener('click', function(){
+      document.getElementById('fileImport').click();
+    });
+    document.getElementById('sm_demo').addEventListener('click', loadDemoData);
+    document.getElementById('sm_clear').addEventListener('click', clearAll);
+    document.querySelectorAll('input[name="theme"]').forEach(function(radio){
+      radio.addEventListener('change', function(){
+        settings.theme = radio.value;
+        persistThemeLocal();
+        applyTheme();
+      });
+    });
+    document.getElementById('sm_syncstatus').addEventListener('change', function(e){
+      settings.showSyncStatus = e.target.checked;
+      persistThemeLocal();
+      applySyncStatusVisibility();
+    });
+
+    document.getElementById('sm_addz').addEventListener('click', function(){
+      var input = document.getElementById('sm_newz');
+      var name = input.value.trim();
+      if (!name) return;
+      if (settings.zustaendige.some(function(n){ return n.toLowerCase() === name.toLowerCase(); })){
+        showToast('Gibt es schon');
+        return;
+      }
+      settings.zustaendige.push(name);
+      persistZustaendige();
+      renderSettingsModal();
+      showToast('Zuständige(r) hinzugefügt');
+    });
+    document.querySelectorAll('[data-removez]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var name = btn.getAttribute('data-removez');
+        settings.zustaendige = settings.zustaendige.filter(function(n){ return n !== name; });
+        persistZustaendige();
+        renderSettingsModal();
+        showToast('Entfernt');
+      });
+    });
+    document.querySelectorAll('[data-editz]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        editingZName = btn.getAttribute('data-editz');
+        renderSettingsModal();
+        var inp = document.getElementById('sm_editinput');
+        if (inp){ inp.focus(); inp.select(); }
+      });
+    });
+    document.querySelectorAll('[data-cancelz]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        editingZName = null;
+        renderSettingsModal();
+      });
+    });
+    document.querySelectorAll('[data-savez]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var oldName = btn.getAttribute('data-savez');
+        var input = document.getElementById('sm_editinput');
+        var newName = input.value.trim();
+        if (!newName){ showToast('Name darf nicht leer sein'); return; }
+        if (newName !== oldName && settings.zustaendige.some(function(n){ return n.toLowerCase() === newName.toLowerCase(); })){
+          showToast('Diesen Namen gibt es schon');
+          return;
+        }
+        renameZustaendiger(oldName, newName);
+        editingZName = null;
+        renderSettingsModal();
+        showToast('Umbenannt — bestehende Zuweisungen wurden aktualisiert');
+      });
+    });
+  }
+
+  function closeModal(){ document.getElementById('modalRoot').innerHTML = ''; }
+
+  // ---------- Auftragsabwicklung: Rendering ----------
+  function relevantSteps(o){ return ORDER_STEPS.filter(function(s){ return s.relevant(o); }); }
+
+  function computeOrderProgress(o){
+    var steps = relevantSteps(o);
+    var done = steps.filter(function(s){ return !!o[s.key]; }).length;
+    return { done:done, total:steps.length, percent: steps.length ? Math.round(done/steps.length*100) : 0 };
+  }
+
+  function orderTag(o){
+    if (o.fahrzeugAusgeliefert) return { label:'Ausgeliefert', cls:'tag-ausgeliefert' };
+    if (o.aufbereitet && o.fahrzeugZugelassen && o.fahrzeugAngeliefert) return { label:'Bereit zur Auslieferung', cls:'tag-bereit' };
+    return { label:'In Bearbeitung', cls:'tag-bearbeitung' };
+  }
+
+  function getFilteredOrders(){
+    return orders.filter(function(o){
+      if (computeOrderProgress(o).percent === 100) return false; // abgeschlossen -> erscheint bei den Bestandskunden
+      if (activeAuftragFilter && orderTag(o).label !== activeAuftragFilter) return false;
+      if (auftragSearchTerm){
+        var hay = (o.kunde + ' ' + o.fahrzeug).toLowerCase();
+        if (hay.indexOf(auftragSearchTerm.toLowerCase()) === -1) return false;
+      }
+      return true;
+    }).sort(function(a,b){ return b.erstelltAm.localeCompare(a.erstelltAm); });
+  }
+
+  function renderOrderChips(){
+    var active = orders.filter(function(o){ return computeOrderProgress(o).percent !== 100; });
+    var tags = ['In Bearbeitung','Bereit zur Auslieferung'];
+    var counts = {}; tags.forEach(function(t){ counts[t] = 0; });
+    active.forEach(function(o){ counts[orderTag(o).label]++; });
+    var html = '<button class="chip' + (activeAuftragFilter===''?' active':'') + '" data-tag="">Alle (' + active.length + ')</button>';
+    tags.forEach(function(t){
+      html += '<button class="chip' + (activeAuftragFilter===t?' active':'') + '" data-tag="' + t + '">' + t + ' (' + counts[t] + ')</button>';
+    });
+    document.getElementById('auftragChips').innerHTML = html;
+    document.querySelectorAll('#auftragChips .chip').forEach(function(btn){
+      btn.addEventListener('click', function(){ activeAuftragFilter = btn.getAttribute('data-tag'); renderOrders(); });
+    });
+  }
+
+  function orderRowHtml(o){
+    var prog = computeOrderProgress(o);
+    var tag = orderTag(o);
+    var row =
+      '<tr class="row" data-oid="' + o.id + '">' +
+        '<td data-label="Kunde"><div class="kunde-name">' + escapeHtml(o.kunde) +
+          ' <span class="auftrag-tag ' + (o.kategorie==='gewerbe'?'tag-gewerbe':'tag-privat') + '" style="margin-left:4px; vertical-align:middle;">' + (o.kategorie==='gewerbe'?'Gewerbe':'Privat') + '</span>' +
+          ' <span class="auftrag-tag ' + fahrzeugtypTagClass(o.fahrzeugtyp) + '" style="margin-left:2px; vertical-align:middle;">' + (FAHRZEUGTYPEN[o.fahrzeugtyp] || 'Gebrauchtwagen') + '</span></div>' +
+          '<div class="kunde-meta">' + escapeHtml(o.telefon || o.email || '') + '</div></td>' +
+        '<td data-label="Fahrzeug">' + plateChip(o.fahrzeug) + '</td>' +
+        '<td data-label="Zahlungsart"><span class="auftrag-tag tag-zahlung-' + (o.zahlungsart||'barkauf') + '">' + (ZAHLUNGSARTEN[o.zahlungsart] || o.zahlungsart) + '</span></td>' +
+        '<td data-label="Status"><span class="auftrag-tag ' + tag.cls + '">' + tag.label + '</span></td>' +
+        '<td data-label="Fortschritt"><div class="progress-wrap"><div class="progress-track">' +
+          '<div class="progress-fill' + (prog.percent>=100?' done':'') + '" style="width:' + prog.percent + '%"></div></div>' +
+          '<span class="progress-text">' + prog.done + '/' + prog.total + '</span></div></td>' +
+        '<td style="width:24px"><span class="chevron">›</span></td>' +
+      '</tr>';
+    return row;
+  }
+
+  function openOrderDetailModal(orderId){
+    var order = orders.find(function(o){ return o.id === orderId; });
+    if (!order){ closeModal(); return; }
+    var html = '<div class="modal-overlay" id="overlay"><div class="modal" data-odetail-for="' + order.id + '" style="max-width:1080px; width:92vw;">' +
+      '<div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px;">' +
+        '<h2 style="margin:0;">' + escapeHtml(order.kunde) + '</h2>' +
+        '<button class="btn btn-ghost btn-sm" id="od_close">Schließen</button>' +
+      '</div>' +
+      orderDetailHtml(order) +
+    '</div></div>';
+    document.getElementById('modalRoot').innerHTML = html;
+    document.getElementById('od_close').addEventListener('click', closeModal);
+    document.getElementById('overlay').addEventListener('click', function(e){ if (e.target.id === 'overlay') closeModal(); });
+    var container = document.querySelector('.modal[data-odetail-for="' + order.id + '"]');
+    wireOrderDetail(container, function(){
+      var still = orders.find(function(o){ return o.id === orderId; });
+      renderOrders();
+      if (still && computeOrderProgress(still).percent < 100){
+        openOrderDetailModal(orderId); // im Fenster bleiben und live aktualisieren
+      } else {
+        closeModal(); // abgeschlossen oder gelöscht -> Fenster schließen
+      }
+    });
+  }
+
+  function renderSnapshotView(o){
+    return '<div><b>Kunde</b>' + escapeHtml(o.kunde) + '</div>' +
+      '<div><b>Telefon</b>' + escapeHtml(o.telefon || '—') + '</div>' +
+      '<div><b>E-Mail</b>' + escapeHtml(o.email || '—') + '</div>' +
+      '<button class="snapshot-edit-btn" id="od_snapshot_edit" title="Bearbeiten">✏️</button>';
+  }
+
+  function renderSnapshotEditForm(o){
+    return '<div class="snapshot-edit-grid">' +
+        '<div class="field"><label>Kunde</label><input type="text" id="od_snap_kunde" value="' + escapeHtml(o.kunde||'') + '"></div>' +
+        '<div class="field"><label>Telefon</label><input type="tel" id="od_snap_telefon" value="' + escapeHtml(o.telefon||'') + '"></div>' +
+        '<div class="field"><label>E-Mail</label><input type="email" id="od_snap_email" value="' + escapeHtml(o.email||'') + '"></div>' +
+      '</div>' +
+      '<div class="snapshot-edit-actions">' +
+        '<button class="btn btn-ghost btn-sm" id="od_snap_cancel">Abbrechen</button>' +
+        '<button class="btn btn-primary btn-sm" id="od_snap_save">Speichern</button>' +
+      '</div>';
+  }
+
+  function orderDetailHtml(o){
+    var zahlOptions = Object.keys(ZAHLUNGSARTEN).map(function(k){
+      return '<option value="' + k + '"' + (k===o.zahlungsart?' selected':'') + '>' + ZAHLUNGSARTEN[k] + '</option>';
+    }).join('');
+    var lastGroup = null;
+    var zOptionsChecklist = '<option value="">– niemand –</option>' +
+      getZustaendigenOptions().map(function(n){ return '<option value="' + escapeHtml(n) + '">' + escapeHtml(n) + '</option>'; }).join('');
+    var checklist = relevantSteps(o).map(function(s){
+      var checked = !!o[s.key];
+      var dateField = s.hasDate
+        ? '<input type="date" data-datefor="' + s.key + '" value="' + escapeHtml(o[s.key + 'Datum'] || '') + '"' + (checked?'':' disabled') + '>'
+        : '';
+      var assignedTo = (o.stepAssignee && o.stepAssignee[s.key]) || '';
+      var assignField = s.assignable
+        ? '<select data-stepassignee="' + s.key + '" class="step-assignee">' +
+            zOptionsChecklist.replace('value="' + escapeHtml(assignedTo) + '"', 'value="' + escapeHtml(assignedTo) + '" selected') +
+          '</select>'
+        : '';
+      var groupHeader = '';
+      if (s.group && s.group !== lastGroup){
+        groupHeader = '<div class="checklist-group-label">' + (s.groupLabel || s.group) + '</div>';
+      }
+      lastGroup = s.group || null;
+      var indentStyle = s.group ? ' style="margin-left:14px;"' : '';
+      return groupHeader + '<div class="checklist-item' + (checked?' checked':'') + '"' + indentStyle + '>' +
+        '<input type="checkbox" data-step="' + s.key + '"' + (checked?' checked':'') + '>' +
+        '<label>' + s.label + '</label>' + dateField + assignField +
+      '</div>';
+    }).join('');
+    var history = (o.notizen||[]).map(function(n){
+      return '<div class="history-item"><div class="when">' + fmtDateTime(n.datum) + '</div><div class="what">' + escapeHtml(n.text) + '</div></div>';
+    }).join('') || '<div style="color:var(--muted); font-size:12.5px;">Noch keine Einträge.</div>';
+
+    return '<div class="detail" style="margin-top:14px;">' +
+      '<div>' +
+        '<div class="lead-snapshot" id="od_snapshot" data-oid="' + o.id + '">' +
+          renderSnapshotView(o) +
+        '</div>' +
+        '<h4>Zahlung</h4>' +
+        '<div class="field-grid">' +
+          '<div class="field"><label>Zahlungsart</label><select data-ofield="zahlungsart">' + zahlOptions + '</select></div>' +
+          '<div class="field"><label>Eigenzulassung</label><select data-ofield="eigenzulassung">' +
+            '<option value="false"' + (!o.eigenzulassung?' selected':'') + '>Nein</option>' +
+            '<option value="true"' + (o.eigenzulassung?' selected':'') + '>Ja</option></select></div>' +
+          '<div class="field"><label>Inzahlungnahme</label><select data-ofield="inzahlungnahme">' +
+            '<option value="false"' + (!o.inzahlungnahme?' selected':'') + '>Nein</option>' +
+            '<option value="true"' + (o.inzahlungnahme?' selected':'') + '>Ja</option></select></div>' +
+          (o.zahlungsart === 'leasing'
+            ? '<div class="field"><label>Leasing-Laufzeit (Monate)</label><input type="number" min="1" max="60" data-ofield="leasingLaufzeitMonate" value="' + (o.leasingLaufzeitMonate || 36) + '"></div>'
+            : '') +
+        '</div>' +
+        '<h4>Checkliste</h4>' +
+        '<div class="checklist">' + checklist + '</div>' +
+      '</div>' +
+      '<div>' +
+        '<h4>Verlauf</h4>' +
+        '<div class="history">' + history + '</div>' +
+        '<div class="note-form"><textarea placeholder="Notiz hinzufügen …" data-ofield="newnote"></textarea>' +
+        '<button class="btn btn-primary btn-sm" data-oaction="addnote">Hinzufügen</button></div>' +
+      '</div>' +
+      '<div class="detail-actions">' +
+        '<span style="color:var(--muted); font-size:12px;">Angelegt am ' + fmtDateTime(o.erstelltAm) + '</span>' +
+        '<div style="display:flex; gap:8px;">' +
+          '<button class="btn btn-danger btn-sm" data-oaction="delete">Auftrag löschen</button>' +
+          '<button class="btn btn-primary btn-sm" data-oaction="savefields">Änderungen speichern</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderOrders(){
+    renderOrderChips();
+    var wrap = document.getElementById('auftragWrap');
+    if (!ordersLoaded){ wrap.innerHTML = '<div class="loading">Lade Aufträge …</div>'; return; }
+    var filtered = getFilteredOrders();
+    var activeCount = orders.filter(function(o){ return computeOrderProgress(o).percent !== 100; }).length;
+    if (orders.length === 0){
+      wrap.innerHTML = '<div class="empty"><h3>Noch keine Aufträge</h3>' +
+        '<p>Setz einen Lead auf "Gewonnen" — er landet dann automatisch hier. Oder leg einen Auftrag manuell an.</p>' +
+        '<div style="display:flex; justify-content:center; margin-top:14px;">' +
+        '<button class="btn btn-primary" id="emptyNewOrder">+ Auftrag manuell anlegen</button></div></div>';
+      var btn = document.getElementById('emptyNewOrder');
+      if (btn) btn.addEventListener('click', openNewOrderModal);
+    } else if (activeCount === 0 && !activeAuftragFilter && !auftragSearchTerm){
+      wrap.innerHTML = '<div class="empty"><h3>Alles erledigt 🎉</h3><p>Alle Aufträge sind vollständig abgeschlossen und als Bestandskunden erfasst.</p></div>';
+    } else if (filtered.length === 0){
+      wrap.innerHTML = '<div class="empty"><h3>Keine Treffer</h3><p>Keine Aufträge entsprechen den aktuellen Filtern.</p></div>';
+    } else {
+      wrap.innerHTML =
+        '<table><thead><tr><th>Kunde</th><th>Fahrzeug</th><th>Zahlungsart</th><th>Status</th><th>Fortschritt</th><th></th></tr></thead>' +
+        '<tbody>' + filtered.map(orderRowHtml).join('') + '</tbody></table>';
+      document.querySelectorAll('#auftragWrap tr.row').forEach(function(tr){
+        tr.addEventListener('click', function(){
+          openOrderDetailModal(tr.getAttribute('data-oid'));
+        });
+      });
+    }
+  }
+
+  function openConfirmModal(opts){
+    var html = '<div class="modal-overlay" id="overlay"><div class="modal" style="max-width:420px;">' +
+      '<h2>' + opts.title + '</h2>' +
+      '<p style="font-size:13.5px; color:var(--ink); line-height:1.5; margin-top:-6px;">' + opts.message + '</p>' +
+      '<div class="modal-actions">' +
+        '<button class="btn btn-ghost" id="cm_cancel">' + (opts.cancelLabel || 'Abbrechen') + '</button>' +
+        '<button class="btn btn-primary" id="cm_confirm">' + (opts.confirmLabel || 'Bestätigen') + '</button>' +
+      '</div>' +
+    '</div></div>';
+    document.getElementById('modalRoot').innerHTML = html;
+    var done = false;
+    function finish(result){
+      if (done) return;
+      done = true;
+      closeModal();
+      if (result && opts.onConfirm) opts.onConfirm();
+      if (!result && opts.onCancel) opts.onCancel();
+    }
+    document.getElementById('cm_cancel').addEventListener('click', function(){ finish(false); });
+    document.getElementById('overlay').addEventListener('click', function(e){ if (e.target.id === 'overlay') finish(false); });
+    document.getElementById('cm_confirm').addEventListener('click', function(){ finish(true); });
+  }
+
+  function applyOrderStepChange(order, step, checked){
+    order[step.key] = checked;
+    if (step.hasDate){
+      if (checked && !order[step.key + 'Datum']) order[step.key + 'Datum'] = todayISO();
+      if (!checked) order[step.key + 'Datum'] = '';
+    }
+    addOrderHistory(order, (checked ? 'Erledigt: ' : 'Zurückgesetzt: ') + step.label);
+  }
+
+  function autoCompleteSteps(order, steps){
+    steps.forEach(function(step){
+      if (!order[step.key]) applyOrderStepChange(order, step, true);
+    });
+  }
+
+  function wireSnapshotEditButton(snapshotBox, order, refresh){
+    var editBtn = snapshotBox.querySelector('#od_snapshot_edit');
+    if (!editBtn) return;
+    editBtn.addEventListener('click', function(){
+      snapshotBox.innerHTML = renderSnapshotEditForm(order);
+      snapshotBox.querySelector('#od_snap_cancel').addEventListener('click', function(){
+        snapshotBox.innerHTML = renderSnapshotView(order);
+        wireSnapshotEditButton(snapshotBox, order, refresh);
+      });
+      snapshotBox.querySelector('#od_snap_save').addEventListener('click', function(){
+        order.kunde = snapshotBox.querySelector('#od_snap_kunde').value.trim() || order.kunde;
+        order.telefon = snapshotBox.querySelector('#od_snap_telefon').value.trim();
+        order.email = snapshotBox.querySelector('#od_snap_email').value.trim();
+        addOrderHistory(order, 'Kontaktdaten aktualisiert');
+        persistOrders();
+        showToast('Kontaktdaten gespeichert');
+        refresh();
+      });
+    });
+  }
+
+  function wireOrderDetail(detailRow, refresh){
+    refresh = refresh || renderOrders;
+    var id = detailRow.getAttribute('data-odetail-for');
+    var order = orders.find(function(o){ return o.id === id; });
+    detailRow.addEventListener('click', function(e){ e.stopPropagation(); });
+
+    var snapshotBox = detailRow.querySelector('#od_snapshot');
+    if (snapshotBox) wireSnapshotEditButton(snapshotBox, order, refresh);
+
+    detailRow.querySelectorAll('[data-step]').forEach(function(cb){
+      cb.addEventListener('change', function(){
+        var key = cb.getAttribute('data-step');
+        var step = ORDER_STEPS.find(function(s){ return s.key === key; });
+        var wantsChecked = cb.checked;
+
+        // Fall: "Auslieferungstermin festgelegt" wird angehakt -> bestätigen, dann ALLE Punkte abhaken
+        if (key === 'fahrzeugAusgeliefert' && wantsChecked){
+          cb.checked = false; // visuell zurücksetzen bis bestätigt
+          openConfirmModal({
+            title:'Fahrzeug ausliefern?',
+            message:'Ist das Fahrzeug fertig und wird jetzt ausgeliefert? Alle übrigen Checklisten-Punkte werden automatisch mit abgehakt und der Kunde erscheint danach bei den Bestandskunden.',
+            confirmLabel:'Ja, ausgeliefert',
+            cancelLabel:'Noch nicht',
+            onConfirm:function(){
+              autoCompleteSteps(order, relevantSteps(order));
+              persistOrders();
+              ORDER_STEPS.filter(function(s){ return s.assignable; }).forEach(function(s){ syncStepTodo(order, s.key); });
+              showToast('Ausgeliefert — Auftrag abgeschlossen');
+              generateNachkaufTodos();
+              refresh();
+            }
+          });
+          return;
+        }
+
+        // Standardfall: normales Ab-/Anhaken ohne Rückfrage
+        applyOrderStepChange(order, step, wantsChecked);
+        persistOrders();
+        if (step && step.assignable){
+          syncStepTodo(order, key);
+        }
+        if (computeOrderProgress(order).percent === 100){
+          showToast('Auftrag abgeschlossen');
+        }
+        refresh();
+      });
+    });
+    detailRow.querySelectorAll('[data-datefor]').forEach(function(inp){
+      inp.addEventListener('change', function(){
+        order[inp.getAttribute('data-datefor') + 'Datum'] = inp.value;
+        // wird erst mit 'Änderungen speichern' persistiert
+      });
+    });
+    detailRow.querySelectorAll('[data-stepassignee]').forEach(function(sel){
+      sel.addEventListener('click', function(e){ e.stopPropagation(); });
+      sel.addEventListener('change', function(){
+        var key = sel.getAttribute('data-stepassignee');
+        order.stepAssignee = order.stepAssignee || {};
+        order.stepAssignee[key] = sel.value;
+        persistOrders();
+        syncStepTodo(order, key);
+        showToast(sel.value ? 'Zuständig: ' + sel.value + ' — als To-Do angelegt' : 'Zuständigkeit entfernt');
+      });
+    });
+    detailRow.querySelectorAll('[data-ofield]').forEach(function(el){
+      if (el.getAttribute('data-ofield') === 'newnote') return;
+      el.addEventListener('change', function(){
+        var field = el.getAttribute('data-ofield');
+        order[field] = (field === 'eigenzulassung' || field === 'inzahlungnahme') ? (el.value === 'true') : el.value;
+        // wird erst mit 'Änderungen speichern' persistiert
+      });
+    });
+    var saveFieldsBtn = detailRow.querySelector('[data-oaction="savefields"]');
+    saveFieldsBtn.addEventListener('click', function(){
+      addOrderHistory(order, 'Zahlungs- und Datumsangaben aktualisiert');
+      persistOrders();
+      generateLeasingTodos();
+      showToast('Änderungen gespeichert');
+      refresh();
+    });
+    var noteBtn = detailRow.querySelector('[data-oaction="addnote"]');
+    noteBtn.addEventListener('click', function(){
+      var ta = detailRow.querySelector('[data-ofield="newnote"]');
+      if (!ta.value.trim()) return;
+      addOrderHistory(order, ta.value.trim());
+      persistOrders();
+      refresh();
+      showToast('Notiz hinzugefügt');
+    });
+    var delBtn = detailRow.querySelector('[data-oaction="delete"]');
+    delBtn.addEventListener('click', function(){
+      if (confirm('Diesen Auftrag unwiderruflich löschen?')){
+        orders = orders.filter(function(o){ return o.id !== id; });
+        expandedOrderId = null;
+        persistOrders();
+        refresh();
+        showToast('Auftrag gelöscht');
+      }
+    });
+  }
+
+  function openNewOrderModal(prefill){
+    prefill = prefill || {};
+    var leadsWithoutOrder = leads.filter(function(l){ return !orders.some(function(o){ return o.leadId === l.id; }); });
+    var leadOptions = '<option value="">– Keinen Lead verknüpfen –</option>' + leadsWithoutOrder.map(function(l){
+      return '<option value="' + l.id + '"' + (prefill.leadId===l.id?' selected':'') + '>' + escapeHtml(l.name) + ' · ' + escapeHtml(l.fahrzeug) + '</option>';
+    }).join('');
+    var html = '<div class="modal-overlay" id="overlay"><div class="modal">' +
+      '<h2>Auftrag anlegen</h2>' +
+      '<div class="field-grid">' +
+        '<div class="field full"><label>Vorhandenen Lead verknüpfen (optional)</label><select id="om_lead">' + leadOptions + '</select></div>' +
+        '<div class="field"><label>Kunde *</label><input type="text" id="om_kunde" value="' + escapeHtml(prefill.kunde||'') + '"></div>' +
+        '<div class="field"><label>Fahrzeug *</label><input type="text" id="om_fahrzeug" value="' + escapeHtml(prefill.fahrzeug||'') + '"></div>' +
+        '<div class="field"><label>Kategorie</label><select id="om_kategorie">' +
+          '<option value="privat"' + (prefill.kategorie!=='gewerbe'?' selected':'') + '>Privatkunde</option>' +
+          '<option value="gewerbe"' + (prefill.kategorie==='gewerbe'?' selected':'') + '>Gewerbekunde</option>' +
+        '</select></div>' +
+        '<div class="field"><label>Fahrzeugtyp</label><select id="om_fahrzeugtyp">' +
+          Object.keys(FAHRZEUGTYPEN).map(function(k){ return '<option value="' + k + '"' + ((prefill.fahrzeugtyp||'neu')===k?' selected':'') + '>' + FAHRZEUGTYPEN[k] + '</option>'; }).join('') +
+        '</select></div>' +
+        '<div class="field"><label>Zahlungsart</label><select id="om_zahlungsart">' +
+          Object.keys(ZAHLUNGSARTEN).map(function(k){ return '<option value="' + k + '">' + ZAHLUNGSARTEN[k] + '</option>'; }).join('') +
+        '</select></div>' +
+        '<div class="field"><label>Eigenzulassung</label><select id="om_eigenzulassung">' +
+          '<option value="false">Nein</option><option value="true">Ja</option>' +
+        '</select></div>' +
+        '<div class="field"><label>Inzahlungnahme</label><select id="om_inzahlungnahme">' +
+          '<option value="false">Nein</option><option value="true">Ja</option>' +
+        '</select></div>' +
+      '</div>' +
+      '<div class="modal-actions">' +
+        '<button class="btn btn-ghost" id="om_cancel">Abbrechen</button>' +
+        '<button class="btn btn-primary" id="om_save">Anlegen</button>' +
+      '</div>' +
+    '</div></div>';
+    document.getElementById('modalRoot').innerHTML = html;
+    document.getElementById('om_cancel').addEventListener('click', closeModal);
+    document.getElementById('overlay').addEventListener('click', function(e){ if (e.target.id === 'overlay') closeModal(); });
+    var leadSel = document.getElementById('om_lead');
+    leadSel.addEventListener('change', function(){
+      var lead = leads.find(function(l){ return l.id === leadSel.value; });
+      if (lead){
+        document.getElementById('om_kunde').value = lead.name;
+        document.getElementById('om_fahrzeug').value = lead.fahrzeug;
+        document.getElementById('om_kategorie').value = lead.kategorie || 'privat';
+        document.getElementById('om_fahrzeugtyp').value = lead.fahrzeugtyp || 'gebraucht';
+      }
+    });
+    document.getElementById('om_save').addEventListener('click', function(){
+      var kunde = document.getElementById('om_kunde').value.trim();
+      var fahrzeug = document.getElementById('om_fahrzeug').value.trim();
+      if (!kunde || !fahrzeug){ showToast('Kunde und Fahrzeug sind erforderlich'); return; }
+      var leadId = leadSel.value || null;
+      var lead = leadId ? leads.find(function(l){ return l.id === leadId; }) : null;
+      var kategorie = document.getElementById('om_kategorie').value;
+      var fahrzeugtyp = document.getElementById('om_fahrzeugtyp').value;
+      var zahlungsart = document.getElementById('om_zahlungsart').value;
+      var eigenzulassung = document.getElementById('om_eigenzulassung').value === 'true';
+      var inzahlungnahme = document.getElementById('om_inzahlungnahme').value === 'true';
+
+      function finalizeOrder(linkedLead){
+        var pseudo = linkedLead
+          ? Object.assign({}, linkedLead, { name:kunde, fahrzeug:fahrzeug, kategorie:kategorie, fahrzeugtyp:fahrzeugtyp })
+          : { id:null, name:kunde, fahrzeug:fahrzeug, telefon:prefill.telefon||'', email:prefill.email||'', zustaendig:prefill.zustaendig||'', kategorie:kategorie, fahrzeugtyp:fahrzeugtyp };
+        var order = createOrderFromLead(pseudo, zahlungsart);
+        order.eigenzulassung = eigenzulassung;
+        order.inzahlungnahme = inzahlungnahme;
+        persistOrders();
+        renderOrders();
+        closeModal();
+        showToast('Auftrag angelegt — als Gewonnen erfasst');
+      }
+
+      if (lead){
+        if (lead.status !== 'gewonnen'){
+          lead.status = 'gewonnen';
+          addHistory(lead, 'Status geändert: Gewonnen (über manuell angelegten Auftrag)');
+          persist().then(function(){ finalizeOrder(lead); });
+        } else {
+          finalizeOrder(lead);
+        }
+      } else {
+        createLead({
+          name:kunde, kategorie:kategorie, fahrzeugtyp:fahrzeugtyp, telefon:'', email:'',
+          fahrzeug:fahrzeug, quelle:'sonstiges', status:'gewonnen', erstkontakt:todayISO(), wiedervorlage:'', zustaendig:''
+        }).then(function(){
+          finalizeOrder(leads[0]);
+        });
+      }
+    });
+  }
+
+  var bkSearchTerm = '';
+  var bkExpandedKey = null;
+  var bkSortBy = 'longest';
+  var bkJahrFilter = '';
+  var bkMonatFilter = '';
+  var bkZahlungsartFilter = '';
+
+  var NACHKAUF_TAGE = 14;
+
+  function stepTodoLabel(order, stepKey){
+    var step = ORDER_STEPS.find(function(s){ return s.key === stepKey; });
+    return (order.kunde || 'Kunde') + ' – ' + (step ? step.label : stepKey);
+  }
+
+  function syncStepTodo(order, stepKey){
+    var assignedTo = (order.stepAssignee && order.stepAssignee[stepKey]) || '';
+    var existing = todos.find(function(t){ return t.source === 'step' && t.orderId === order.id && t.stepKey === stepKey; });
+    var checked = !!order[stepKey];
+
+    if (!assignedTo || checked){
+      // Kein Zuständiger mehr zugewiesen, oder Punkt bereits erledigt -> zugehöriges To-Do entfernen
+      if (existing){
+        if (todoRemovalTimers[existing.id]){ clearTimeout(todoRemovalTimers[existing.id]); delete todoRemovalTimers[existing.id]; }
+        todos = todos.filter(function(t){ return t.id !== existing.id; });
+        persistTodos();
+      }
+      return;
+    }
+    if (existing){
+      existing.assignedTo = assignedTo;
+      existing.title = stepTodoLabel(order, stepKey);
+      persistTodos();
+    } else {
+      todos.push({
+        id: uid(), title: stepTodoLabel(order, stepKey), assignedTo: assignedTo,
+        dueDate:'', done:false, source:'step', orderId:order.id, stepKey:stepKey,
+        erstelltAm: new Date().toISOString()
+      });
+      persistTodos();
+    }
+  }
+
+  var ESKALATION_TAGE = 2;
+
+  function generateEskalationTodos(){
+    if (!loaded || !todosLoaded) return;
+    var changed = false;
+    leads.forEach(function(l){
+      var shouldExist = l.status !== 'gewonnen' && l.status !== 'verloren' &&
+        l.wiedervorlage && addDaysISO(l.wiedervorlage, ESKALATION_TAGE) <= todayISO() &&
+        l.eskalationAckWiedervorlage !== l.wiedervorlage;
+      var existing = todos.find(function(t){ return t.source === 'eskalation' && t.leadId === l.id; });
+      if (shouldExist && !existing){
+        todos.push({
+          id: uid(), title: 'Nachfassen: ' + (l.name || 'Lead'), assignedTo:'',
+          dueDate:'', done:false, source:'eskalation', leadId:l.id, erstelltAm: new Date().toISOString()
+        });
+        changed = true;
+      } else if (!shouldExist && existing){
+        if (todoRemovalTimers[existing.id]){ clearTimeout(todoRemovalTimers[existing.id]); delete todoRemovalTimers[existing.id]; }
+        todos = todos.filter(function(t){ return t.id !== existing.id; });
+        changed = true;
+      }
+    });
+    if (changed){
+      persistTodos();
+      if (currentView === 'todos') renderTodos();
+    }
+  }
+
+  var LEASING_VORLAUF_MONATE = 3;
+
+  function generateLeasingTodos(){
+    if (!ordersLoaded || !todosLoaded) return;
+    var changed = false;
+    orders.forEach(function(o){
+      var isLeasing = o.zahlungsart === 'leasing' && o.fahrzeugAusgeliefertDatum && !o.leasingauslaufErledigt;
+      var already = todos.some(function(t){ return t.source === 'leasingauslauf' && t.orderId === o.id; });
+      if (!isLeasing){
+        return; // kein Leasingfahrzeug oder noch nicht ausgeliefert -> nichts zu tun
+      }
+      if (already) return;
+      var laufzeit = parseInt(o.leasingLaufzeitMonate, 10) || 36;
+      var leasingende = addMonthsISO(o.fahrzeugAusgeliefertDatum, laufzeit);
+      var faelligAm = addMonthsISO(leasingende, -LEASING_VORLAUF_MONATE);
+      todos.push({
+        id: uid(), title: (o.kunde || 'Kunde') + ' – Leasingauslauf in 3 Monaten',
+        assignedTo:'', dueDate: faelligAm, done:false, source:'leasingauslauf', orderId:o.id,
+        kunde:o.kunde||'', telefon:o.telefon||'', email:o.email||'', erstelltAm: new Date().toISOString()
+      });
+      changed = true;
+    });
+    if (changed){
+      persistTodos();
+      if (currentView === 'todos') renderTodos();
+    }
+  }
+
+  function generateNachkaufTodos(){
+    if (!ordersLoaded || !todosLoaded) return;
+    var changed = false;
+    orders.forEach(function(o){
+      if (!o.fahrzeugAusgeliefertDatum || o.nachkaufErledigt) return;
+      var already = todos.some(function(t){ return t.source === 'nachkauf' && t.orderId === o.id; });
+      if (already) return;
+      var faelligAm = addDaysISO(o.fahrzeugAusgeliefertDatum, NACHKAUF_TAGE);
+      var todo = {
+        id: uid(),
+        title: 'Nachkauftelefonat: ' + (o.kunde || 'Kunde'),
+        notiz: [o.telefon ? ('Tel: ' + o.telefon) : '', o.email ? ('E-Mail: ' + o.email) : ''].filter(Boolean).join(' · '),
+        assignedTo: '',
+        dueDate: faelligAm,
+        done: false,
+        source: 'nachkauf',
+        orderId: o.id,
+        kunde: o.kunde || '',
+        telefon: o.telefon || '',
+        email: o.email || '',
+        erstelltAm: new Date().toISOString()
+      };
+      todos.push(todo);
+      changed = true;
+    });
+    if (changed){
+      persistTodos();
+      if (currentView === 'todos') renderTodos();
+    }
+  }
+
+  function isTodoFaellig(t){
+    return !t.done && t.dueDate && t.dueDate <= todayISO();
+  }
+
+  function getCustomerKey(rec){
+    var tel = (rec.telefon || '').replace(/\D/g,'');
+    if (tel) return 'tel:' + tel;
+    var mail = (rec.email || '').trim().toLowerCase();
+    if (mail) return 'mail:' + mail;
+    return 'name:' + (rec.name || rec.kunde || '').trim().toLowerCase();
+  }
+
+  function buildBestandskunden(){
+    var groups = {};
+    function ensure(key, rec){
+      if (!groups[key]) groups[key] = { key:key, name:'', telefon:'', email:'', viaQuelle:false, purchases:[] };
+      var g = groups[key];
+      if (!g.name && (rec.name || rec.kunde)) g.name = rec.name || rec.kunde;
+      if (!g.telefon && rec.telefon) g.telefon = rec.telefon;
+      if (!g.email && rec.email) g.email = rec.email;
+      return g;
+    }
+    leads.forEach(function(l){
+      var g = ensure(getCustomerKey(l), l);
+      if (l.quelle === 'bestandskunde') g.viaQuelle = true;
+    });
+    orders.forEach(function(o){
+      var g = ensure(getCustomerKey(o), o);
+      var kaufdatum = o.bestellungUnterschriebenDatum || (o.gewonnenAm ? o.gewonnenAm.slice(0,10) : '');
+      var auslieferdatum = o.fahrzeugAusgeliefertDatum || '';
+      g.purchases.push({ orderId:o.id, fahrzeug:o.fahrzeug, kaufdatum:kaufdatum, auslieferdatum:auslieferdatum, zahlungsart:o.zahlungsart||'' });
+    });
+    var list = Object.keys(groups).map(function(k){ return groups[k]; })
+      .filter(function(g){ return g.viaQuelle || g.purchases.length > 0; });
+    list.forEach(function(g){
+      g.purchases.sort(function(a,b){ return (b.kaufdatum||'').localeCompare(a.kaufdatum||''); });
+      g.lastPurchase = g.purchases.length ? g.purchases[0].kaufdatum : '';
+      g.lastDelivery = g.purchases.length ? g.purchases[0].auslieferdatum : '';
+    });
+    return list;
+  }
+
+  function sortBestandskunden(list, sortBy){
+    list.sort(function(a,b){
+      if (sortBy === 'name') return (a.name||'').localeCompare(b.name||'', 'de');
+      if (sortBy === 'recent'){
+        if (a.lastPurchase && b.lastPurchase) return b.lastPurchase.localeCompare(a.lastPurchase); // neueste zuerst
+        if (a.lastPurchase) return -1;
+        if (b.lastPurchase) return 1;
+        return (a.name||'').localeCompare(b.name||'', 'de');
+      }
+      // 'longest' (Standard): am längsten her zuerst
+      if (a.lastPurchase && b.lastPurchase) return a.lastPurchase.localeCompare(b.lastPurchase);
+      if (a.lastPurchase) return -1;
+      if (b.lastPurchase) return 1;
+      return (a.name||'').localeCompare(b.name||'', 'de');
+    });
+    return list;
+  }
+
+  function timeSinceLabel(dateStr){
+    if (!dateStr) return null;
+    var d = new Date(dateStr.length <= 10 ? dateStr + 'T00:00:00' : dateStr);
+    var days = Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000));
+    var years = Math.floor(days / 365.25);
+    var months = Math.floor((days % 365.25) / 30.44);
+    if (years >= 1) return years + (years === 1 ? ' Jahr' : ' Jahre') + (months > 0 ? ', ' + months + ' Mon.' : '');
+    if (months >= 1) return months + (months === 1 ? ' Monat' : ' Monate');
+    return 'vor Kurzem';
+  }
+  function timeSinceClass(dateStr){
+    if (!dateStr) return 'bk-mid';
+    var d = new Date(dateStr.length <= 10 ? dateStr + 'T00:00:00' : dateStr);
+    var years = (Date.now() - d.getTime()) / 86400000 / 365.25;
+    if (years >= 2) return 'bk-old';
+    if (years >= 1) return 'bk-mid';
+    return 'bk-recent';
+  }
+
+  function renderBestandskundenJahrOptions(){
+    var years = [];
+    buildBestandskunden().forEach(function(g){
+      g.purchases.forEach(function(p){ if (p.kaufdatum) years.push(new Date(p.kaufdatum).getFullYear()); });
+    });
+    years.push(new Date().getFullYear());
+    years = Array.from(new Set(years));
+    years.sort(function(a,b){ return b - a; });
+    var sel = document.getElementById('bkJahrFilter');
+    var current = bkJahrFilter;
+    sel.innerHTML = '<option value="">Alle Jahre</option>' +
+      years.map(function(y){ return '<option value="' + y + '"' + (String(y)===current?' selected':'') + '>' + y + '</option>'; }).join('');
+  }
+
+  function renderBestandskunden(){
+    var wrap = document.getElementById('bkWrap');
+    if (!loaded || !ordersLoaded){ wrap.innerHTML = '<div class="loading">Lade Bestandskunden …</div>'; return; }
+    renderBestandskundenJahrOptions();
+    var list = buildBestandskunden();
+    if (bkJahrFilter || bkMonatFilter){
+      list = list.filter(function(g){
+        return g.purchases.some(function(p){
+          if (!p.kaufdatum) return false;
+          var d = new Date(p.kaufdatum);
+          if (bkJahrFilter && String(d.getFullYear()) !== bkJahrFilter) return false;
+          if (bkMonatFilter && String(d.getMonth()+1) !== bkMonatFilter) return false;
+          return true;
+        });
+      });
+    }
+    if (bkZahlungsartFilter){
+      list = list.filter(function(g){
+        return g.purchases.some(function(p){ return p.zahlungsart === bkZahlungsartFilter; });
+      });
+    }
+    if (bkSearchTerm){
+      var term = bkSearchTerm.toLowerCase();
+      list = list.filter(function(g){
+        var hay = (g.name + ' ' + g.telefon + ' ' + g.email + ' ' + g.purchases.map(function(p){ return p.fahrzeug; }).join(' ')).toLowerCase();
+        return hay.indexOf(term) !== -1;
+      });
+    }
+    list = sortBestandskunden(list, bkSortBy);
+    if (list.length === 0){
+      wrap.innerHTML = '<div class="empty"><h3>Noch keine Bestandskunden</h3>' +
+        '<p>Kunden landen hier automatisch, sobald ein Fahrzeug komplett ausgeliefert wurde oder ein Lead mit der Quelle "Bestandskunde" angelegt wird.</p></div>';
+      return;
+    }
+    wrap.innerHTML =
+      '<div class="tablewrap">' +
+      list.map(function(g){
+        var open = bkExpandedKey === g.key;
+        var chip = g.lastPurchase
+          ? '<span class="bk-chip ' + timeSinceClass(g.lastPurchase) + '">' + timeSinceLabel(g.lastPurchase) + '</span>'
+          : '<span class="auftrag-tag tag-bearbeitung">Bestandskunde (Quelle)</span>';
+        var relatedOrderIds = g.purchases.map(function(p){ return p.orderId; });
+        var nachkaufTodo = todos.find(function(t){ return t.source==='nachkauf' && relatedOrderIds.indexOf(t.orderId) !== -1 && !t.done; });
+        var nachkaufBadge = nachkaufTodo
+          ? ' <span class="todo-due ' + todoDueClass(nachkaufTodo) + '">' + (isTodoFaellig(nachkaufTodo) ? 'Nachkauf fällig' : 'Nachkauf ' + fmtDate(nachkaufTodo.dueDate)) + '</span>'
+          : '';
+        var row = '<div class="bk-namerow" data-bk="' + g.key + '">' +
+          '<div style="display:flex; align-items:center; gap:10px;">' +
+            '<span class="chevron' + (open?' open':'') + '">›</span>' +
+            '<span class="kunde-name">' + escapeHtml(g.name || '—') + '</span>' +
+            chip + nachkaufBadge +
+          '</div>' +
+          '<span style="color:var(--muted); font-size:12px;">' + (g.purchases.length ? g.purchases.length + ' Fahrzeug' + (g.purchases.length===1?'':'e') : 'kein Kauf erfasst') + '</span>' +
+        '</div>';
+        if (open){
+          var history = g.purchases.length
+            ? g.purchases.map(function(p){
+                return '<div class="bk-vehicle-row" style="flex-wrap:wrap; gap:10px;" data-orderid="' + p.orderId + '">' + plateChip(p.fahrzeug) +
+                  '<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">' +
+                    '<span style="font-size:11.5px; color:var(--muted);">Kauf: <input type="date" value="' + escapeHtml(p.kaufdatum||'') + '" data-bkdate="kauf" style="border:1px solid var(--line); border-radius:5px; padding:3px 5px; font-family:var(--font-mono); font-size:11.5px; background:var(--surface); color:var(--ink);"></span>' +
+                    '<span style="font-size:11.5px; color:var(--muted);">Auslieferung: <input type="date" value="' + escapeHtml(p.auslieferdatum||'') + '" data-bkdate="auslieferung" style="border:1px solid var(--line); border-radius:5px; padding:3px 5px; font-family:var(--font-mono); font-size:11.5px; background:var(--surface); color:var(--ink);"></span>' +
+                    '<button class="btn btn-primary btn-sm" data-savevehicle="' + p.orderId + '">Speichern</button>' +
+                    '<span class="datetext" style="color:var(--muted);">' + (p.kaufdatum ? timeSinceLabel(p.kaufdatum) : '') + '</span>' +
+                  '</div></div>';
+              }).join('')
+            : '<div style="color:var(--muted); font-size:12.5px;">Keine abgeschlossene Kaufhistorie in diesem System erfasst.</div>';
+          row += '<div class="bk-detailpanel">' +
+            '<div class="lead-snapshot" style="padding-right:14px;">' +
+              '<div><b>Telefon</b>' + escapeHtml(g.telefon || '—') + '</div>' +
+              '<div><b>E-Mail</b>' + escapeHtml(g.email || '—') + '</div>' +
+              '<div><b>Letzter Kauf</b>' + (g.lastPurchase ? fmtDate(g.lastPurchase) : '—') + '</div>' +
+              '<div><b>Letzte Auslieferung</b>' + (g.lastDelivery ? fmtDate(g.lastDelivery) : '—') + '</div>' +
+            '</div>' +
+            '<h4>Fahrzeughistorie</h4>' + history +
+              '<div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">' +
+                '<button class="btn btn-primary btn-sm" data-newleadfor="' + g.key + '">+ Neuer Lead für diesen Kunden</button>' +
+                '<button class="btn btn-ghost btn-sm" data-neworderfor="' + g.key + '">+ Auftrag manuell anlegen</button>' +
+                '<button class="btn btn-ghost btn-sm" data-editbk="' + g.key + '">Kontakt bearbeiten</button>' +
+              '</div>' +
+          '</div>';
+        }
+        return row;
+      }).join('') + '</div>';
+
+    document.querySelectorAll('.bk-namerow').forEach(function(rowEl){
+      rowEl.addEventListener('click', function(){
+        var key = rowEl.getAttribute('data-bk');
+        bkExpandedKey = (bkExpandedKey === key) ? null : key;
+        renderBestandskunden();
+      });
+    });
+    document.querySelectorAll('[data-newleadfor]').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var key = btn.getAttribute('data-newleadfor');
+        var g = buildBestandskunden().find(function(x){ return x.key === key; });
+        if (!g) return;
+        openNewModal({
+          name: g.name, telefon: g.telefon, email: g.email,
+          quelle: 'bestandskunde'
+        });
+      });
+    });
+    document.querySelectorAll('[data-neworderfor]').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var key = btn.getAttribute('data-neworderfor');
+        var g = buildBestandskunden().find(function(x){ return x.key === key; });
+        if (!g) return;
+        var lastLead = leads.filter(function(l){ return getCustomerKey(l) === key && !orders.some(function(o){ return o.leadId === l.id; }); })
+          .sort(function(a,b){ return b.erstelltAm.localeCompare(a.erstelltAm); })[0];
+        openNewOrderModal({
+          kunde: g.name, fahrzeug:'', telefon: g.telefon, email: g.email,
+          leadId: lastLead ? lastLead.id : null
+        });
+      });
+    });
+    document.querySelectorAll('[data-bkdate]').forEach(function(inp){
+      inp.addEventListener('click', function(e){ e.stopPropagation(); });
+    });
+    document.querySelectorAll('[data-savevehicle]').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var orderId = btn.getAttribute('data-savevehicle');
+        var order = orders.find(function(o){ return o.id === orderId; });
+        if (!order) return;
+        var row = btn.closest('.bk-vehicle-row');
+        var kaufInput = row.querySelector('[data-bkdate="kauf"]');
+        var ausInput = row.querySelector('[data-bkdate="auslieferung"]');
+        var changed = false;
+        if (kaufInput && kaufInput.value){
+          order.bestellungUnterschriebenDatum = kaufInput.value;
+          order.bestellungUnterschrieben = true;
+          changed = true;
+        }
+        if (ausInput && ausInput.value){
+          order.fahrzeugAusgeliefertDatum = ausInput.value;
+          order.fahrzeugAusgeliefert = true;
+          changed = true;
+        }
+        if (!changed) return;
+        addOrderHistory(order, 'Kauf-/Auslieferdatum nachträglich aktualisiert');
+        persistOrders();
+        // Falls schon ein Nachkauf-Todo existiert, Fälligkeitsdatum an das neue Auslieferdatum anpassen
+        var existingTodo = todos.find(function(t){ return t.source === 'nachkauf' && t.orderId === order.id; });
+        if (existingTodo && order.fahrzeugAusgeliefertDatum){
+          existingTodo.dueDate = addDaysISO(order.fahrzeugAusgeliefertDatum, NACHKAUF_TAGE);
+          persistTodos();
+        }
+        generateNachkaufTodos();
+        renderBestandskunden();
+        showToast('Datum aktualisiert');
+      });
+    });
+    document.querySelectorAll('[data-editbk]').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        openEditBestandskundeModal(btn.getAttribute('data-editbk'));
+      });
+    });
+  }
+
+  function openEditBestandskundeModal(key){
+    var g = buildBestandskunden().find(function(x){ return x.key === key; });
+    if (!g) return;
+    var html = '<div class="modal-overlay" id="overlay"><div class="modal" style="max-width:420px;">' +
+      '<h2>Kontakt bearbeiten</h2>' +
+      '<p style="font-size:12.5px; color:var(--muted); margin-top:-8px;">Änderungen wirken sich auf alle verknüpften Leads und Aufträge dieses Kunden aus.</p>' +
+      '<div class="field-grid">' +
+        '<div class="field full"><label>Name</label><input type="text" id="ebk_name" value="' + escapeHtml(g.name||'') + '"></div>' +
+        '<div class="field"><label>Telefon</label><input type="tel" id="ebk_telefon" value="' + escapeHtml(g.telefon||'') + '"></div>' +
+        '<div class="field"><label>E-Mail</label><input type="email" id="ebk_email" value="' + escapeHtml(g.email||'') + '"></div>' +
+      '</div>' +
+      '<div class="modal-actions">' +
+        '<button class="btn btn-ghost" id="ebk_cancel">Abbrechen</button>' +
+        '<button class="btn btn-primary" id="ebk_save">Speichern</button>' +
+      '</div>' +
+    '</div></div>';
+    document.getElementById('modalRoot').innerHTML = html;
+    document.getElementById('ebk_cancel').addEventListener('click', closeModal);
+    document.getElementById('overlay').addEventListener('click', function(e){ if (e.target.id === 'overlay') closeModal(); });
+    document.getElementById('ebk_save').addEventListener('click', function(){
+      var newName = document.getElementById('ebk_name').value.trim();
+      var newTel = document.getElementById('ebk_telefon').value.trim();
+      var newMail = document.getElementById('ebk_email').value.trim();
+      leads.forEach(function(l){
+        if (getCustomerKey(l) === key){ l.name = newName || l.name; l.telefon = newTel; l.email = newMail; }
+      });
+      orders.forEach(function(o){
+        if (getCustomerKey(o) === key){ o.kunde = newName || o.kunde; o.telefon = newTel; o.email = newMail; }
+      });
+      persist();
+      persistOrders();
+      closeModal();
+      renderBestandskunden();
+      showToast('Kontakt aktualisiert');
+    });
+  }
+
+  function todoDueClass(t){
+    if (!t.dueDate) return '';
+    if (t.dueDate < todayISO()) return 'due-overdue';
+    if (t.dueDate === todayISO()) return 'due-today';
+    return 'due-future';
+  }
+
+  function todoRowHtml(t){
+    var dueHtml = (t.dueDate && (t.source === 'nachkauf' || t.source === 'leasingauslauf')) ? ' <span class="todo-due ' + todoDueClass(t) + '">' + fmtDate(t.dueDate) + '</span>' : '';
+    return '<div class="todo-row' + (t.done?' done':'') + '" data-todoid="' + t.id + '">' +
+      '<input type="checkbox" data-todocheck="' + t.id + '"' + (t.done?' checked':'') + '>' +
+      '<span class="todo-text">' + escapeHtml(t.title) + dueHtml + '</span>' +
+      '<button class="todo-del" data-tododel="' + t.id + '" title="Löschen">✕</button>' +
+    '</div>';
+  }
+
+  function todoColumnHtml(columnKey, list){
+    return list.map(todoRowHtml).join('') +
+      '<input type="text" class="todo-newinput" placeholder="+ Stichpunkt hinzufügen …" data-todonew="' + escapeHtml(columnKey) + '">';
+  }
+
+  function renderTodos(){
+    var wrap = document.getElementById('todosWrap');
+    if (!todosLoaded){ wrap.innerHTML = '<div class="loading">Lade To-Dos …</div>'; return; }
+    var people = settings.zustaendige.slice();
+    while (people.length < 2) people.push(null); // mindestens 2 Personen-Spalten, auch wenn (noch) niemand angelegt ist
+
+    var sorted = todos.slice().sort(function(a,b){
+      if (!!a.done !== !!b.done) return a.done ? 1 : -1;
+      return (a.erstelltAm||'').localeCompare(b.erstelltAm||'');
+    });
+
+    var allgemein = sorted.filter(function(t){ return !t.assignedTo; });
+    var cols = people.map(function(name, idx){
+      var list = name ? sorted.filter(function(t){ return t.assignedTo === name; }) : [];
+      var label = name || ('Person ' + (idx+1) + ' (nicht vergeben)');
+      return '<div class="todo-col">' +
+        '<h3>' + escapeHtml(label) + '</h3>' +
+        todoColumnHtml(name || '', list) +
+      '</div>';
+    });
+
+    var html =
+      '<div class="todo-board" style="grid-template-columns:1fr; margin-bottom:14px;">' +
+        '<div class="todo-col">' +
+          '<h3>Allgemein</h3>' +
+          todoColumnHtml('', allgemein) +
+        '</div>' +
+      '</div>' +
+      '<div class="todo-board" style="grid-template-columns:repeat(' + people.length + ', 1fr);">' +
+        cols.join('') +
+      '</div>';
+    wrap.innerHTML = html;
+
+    wrap.querySelectorAll('[data-todocheck]').forEach(function(cb){
+      cb.addEventListener('change', function(){
+        var id = cb.getAttribute('data-todocheck');
+        var t = todos.find(function(x){ return x.id === id; });
+        if (!t) return;
+        t.done = cb.checked;
+        t.completedAm = cb.checked ? new Date().toISOString() : '';
+        persistTodos();
+
+        // Mit einem Checklisten-Punkt verknüpftes To-Do -> Punkt im Auftrag mit-erledigen
+        if (t.source === 'step' && t.orderId && t.stepKey && cb.checked){
+          var linkedOrder = orders.find(function(o){ return o.id === t.orderId; });
+          if (linkedOrder && !linkedOrder[t.stepKey]){
+            linkedOrder[t.stepKey] = true;
+            if (ORDER_STEPS.find(function(s){ return s.key === t.stepKey; }).hasDate){
+              linkedOrder[t.stepKey + 'Datum'] = todayISO();
+            }
+            addOrderHistory(linkedOrder, ORDER_STEPS.find(function(s){ return s.key === t.stepKey; }).label + ' erledigt (über To-Do)');
+            persistOrders();
+          }
+        }
+
+        // Automatisch erzeugte To-Dos: beim Erledigen dauerhaft am Auftrag/Lead vermerken,
+        // damit sie nicht beim nächsten Sync sofort wieder neu angelegt werden
+        if (cb.checked && t.source === 'nachkauf' && t.orderId){
+          var nkOrder = orders.find(function(o){ return o.id === t.orderId; });
+          if (nkOrder && !nkOrder.nachkaufErledigt){ nkOrder.nachkaufErledigt = true; persistOrders(); }
+        }
+        if (cb.checked && t.source === 'leasingauslauf' && t.orderId){
+          var leaseOrder = orders.find(function(o){ return o.id === t.orderId; });
+          if (leaseOrder && !leaseOrder.leasingauslaufErledigt){ leaseOrder.leasingauslaufErledigt = true; persistOrders(); }
+        }
+        if (cb.checked && t.source === 'eskalation' && t.leadId){
+          var eskLead = leads.find(function(l){ return l.id === t.leadId; });
+          if (eskLead){ eskLead.eskalationAckWiedervorlage = eskLead.wiedervorlage; persist(); }
+        }
+        if (!cb.checked){
+          if (t.source === 'nachkauf' && t.orderId){
+            var nkOrderUndo = orders.find(function(o){ return o.id === t.orderId; });
+            if (nkOrderUndo && nkOrderUndo.nachkaufErledigt){ nkOrderUndo.nachkaufErledigt = false; persistOrders(); }
+          }
+          if (t.source === 'leasingauslauf' && t.orderId){
+            var leaseOrderUndo = orders.find(function(o){ return o.id === t.orderId; });
+            if (leaseOrderUndo && leaseOrderUndo.leasingauslaufErledigt){ leaseOrderUndo.leasingauslaufErledigt = false; persistOrders(); }
+          }
+          if (t.source === 'eskalation' && t.leadId){
+            var eskLeadUndo = leads.find(function(l){ return l.id === t.leadId; });
+            if (eskLeadUndo){ eskLeadUndo.eskalationAckWiedervorlage = ''; persist(); }
+          }
+        }
+
+        if (todoRemovalTimers[id]){
+          clearTimeout(todoRemovalTimers[id]);
+          delete todoRemovalTimers[id];
+        }
+        if (cb.checked){
+          todoRemovalTimers[id] = setTimeout(function(){
+            delete todoRemovalTimers[id];
+            todos = todos.filter(function(x){ return x.id !== id; });
+            persistTodos();
+            renderTodos();
+          }, 2000);
+        }
+        renderTodos();
+      });
+    });
+    wrap.querySelectorAll('[data-tododel]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = btn.getAttribute('data-tododel');
+        if (todoRemovalTimers[id]){ clearTimeout(todoRemovalTimers[id]); delete todoRemovalTimers[id]; }
+        todos = todos.filter(function(x){ return x.id !== id; });
+        persistTodos();
+        renderTodos();
+      });
+    });
+    wrap.querySelectorAll('[data-todonew]').forEach(function(inp){
+      inp.addEventListener('keydown', function(e){
+        if (e.key !== 'Enter') return;
+        var text = inp.value.trim();
+        if (!text) return;
+        todos.push({
+          id: uid(), title:text, assignedTo: inp.getAttribute('data-todonew') || '',
+          dueDate:'', done:false, source:'manuell', erstelltAm: new Date().toISOString()
+        });
+        persistTodos();
+        renderTodos();
+        // Fokus auf das neue leere Eingabefeld derselben Spalte setzen, damit man direkt weiterschreiben kann
+        requestAnimationFrame(function(){
+          var sel = '[data-todonew="' + (inp.getAttribute('data-todonew') || '') + '"]';
+          var newInp = wrap.querySelector(sel);
+          if (newInp) newInp.focus();
+        });
+      });
+    });
+  }
+
+
+  function renderStart(){
+    var wrap = document.getElementById('startWrap');
+    if (!loaded || !ordersLoaded || !todosLoaded){ wrap.innerHTML = '<div class="loading">Lade Übersicht …</div>'; return; }
+
+    var stunde = new Date().getHours();
+    var gruss = stunde < 11 ? 'Guten Morgen' : (stunde < 17 ? 'Guten Tag' : 'Guten Abend');
+    var heuteText = new Date().toLocaleDateString('de-DE', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+
+    var offeneLeads = leads.filter(function(l){ return l.status !== 'gewonnen' && l.status !== 'verloren'; }).length;
+    var faelligeWV = leads.filter(isOverdue).length;
+    var aktiveAuftraege = orders.filter(function(o){ return computeOrderProgress(o).percent !== 100; }).length;
+    var offeneTodosListe = todos.filter(function(t){ return !t.done; });
+    var offeneTodos = offeneTodosListe.length;
+    var todosAllgemein = offeneTodosListe.filter(function(t){ return !t.assignedTo; }).length;
+    var todosByPerson = settings.zustaendige.map(function(name){
+      return { name:name, count: offeneTodosListe.filter(function(t){ return t.assignedTo === name; }).length };
+    });
+    var todoBreakdownHtml =
+      '<div class="kpi-todo-breakdown">' +
+        '<div class="kpi-todo-row"><span>Allgemein</span><span>' + todosAllgemein + '</span></div>' +
+        todosByPerson.map(function(p){
+          return '<div class="kpi-todo-row"><span>' + escapeHtml(p.name) + '</span><span>' + p.count + '</span></div>';
+        }).join('') +
+      '</div>';
+
+    var bereitZurAuslieferung = orders.filter(function(o){
+      return computeOrderProgress(o).percent !== 100 && orderTag(o).label === 'Bereit zur Auslieferung';
+    });
+
+    var faelligeLeadsListe = leads.filter(isOverdue).slice(0, 5);
+
+    wrap.innerHTML =
+      '<div class="hero">' +
+        '<h1>' + gruss + '!</h1>' +
+        '<div class="hero-date">' + heuteText + '</div>' +
+      '</div>' +
+      '<div class="start-kpis">' +
+        '<div class="start-kpi" id="kpi-leads"><div class="kpi-label">Offene Leads</div><div class="kpi-value">' + offeneLeads + '</div></div>' +
+        '<div class="start-kpi" id="kpi-wv"><div class="kpi-label">Fällige Wiedervorlagen</div><div class="kpi-value" style="color:' + (faelligeWV>0?'var(--red)':'var(--ink)') + '">' + faelligeWV + '</div></div>' +
+        '<div class="start-kpi" id="kpi-auftraege"><div class="kpi-label">Aufträge in Bearbeitung</div><div class="kpi-value">' + aktiveAuftraege + '</div></div>' +
+        '<div class="start-kpi start-kpi-tall" id="kpi-todos"><div class="kpi-label">Offene To-Dos</div><div class="kpi-value">' + offeneTodos + '</div>' + todoBreakdownHtml + '</div>' +
+      '</div>' +
+      '<div class="start-actions">' +
+        '<button class="btn btn-primary" id="start-newlead">+ Neuer Lead</button>' +
+        '<button class="btn btn-ghost" id="start-neworder">+ Auftrag anlegen</button>' +
+      '</div>' +
+      '<div class="stats-cols">' +
+        '<div class="start-section"><h3>Fällige Wiedervorlagen</h3>' +
+          (faelligeLeadsListe.length
+            ? faelligeLeadsListe.map(function(l){
+                return '<div class="start-list-item"><span>' + escapeHtml(l.name) + '</span><span style="color:var(--muted);">' + escapeHtml(l.telefon||l.email||'') + '</span></div>';
+              }).join('')
+            : '<div style="color:var(--muted); font-size:13px;">Keine fälligen Wiedervorlagen 🎉</div>') +
+        '</div>' +
+        '<div class="start-section"><h3>Bereit zur Auslieferung</h3>' +
+          (bereitZurAuslieferung.length
+            ? bereitZurAuslieferung.map(function(o){
+                return '<div class="start-list-item"><span>' + escapeHtml(o.kunde) + '</span><span style="color:var(--muted);">' + escapeHtml(o.fahrzeug) + '</span></div>';
+              }).join('')
+            : '<div style="color:var(--muted); font-size:13px;">Aktuell nichts auslieferungsbereit</div>') +
+        '</div>' +
+      '</div>';
+
+    document.getElementById('kpi-leads').addEventListener('click', function(){ switchView('leads'); });
+    document.getElementById('kpi-wv').addEventListener('click', function(){ switchView('leads'); });
+    document.getElementById('kpi-auftraege').addEventListener('click', function(){ switchView('auftraege'); });
+    document.getElementById('kpi-todos').addEventListener('click', function(){ switchView('todos'); });
+    document.getElementById('start-newlead').addEventListener('click', openNewModal);
+    document.getElementById('start-neworder').addEventListener('click', function(){ openNewOrderModal(); });
+  }
+
+  function computeStats(){
+    var total = leads.length;
+    var byStatus = {}; STATUS_ORDER.forEach(function(s){ byStatus[s] = 0; });
+    leads.forEach(function(l){ byStatus[l.status] = (byStatus[l.status]||0) + 1; });
+    var gewonnen = byStatus.gewonnen || 0;
+    var verloren = byStatus.verloren || 0;
+    var closed = gewonnen + verloren;
+    var offen = total - closed;
+
+    var byQuelle = {};
+    leads.forEach(function(l){
+      var k = l.quelle || 'sonstiges';
+      byQuelle[k] = byQuelle[k] || { total:0, gewonnen:0 };
+      byQuelle[k].total++;
+      if (l.status === 'gewonnen') byQuelle[k].gewonnen++;
+    });
+
+    var byZustaendig = {};
+    leads.forEach(function(l){
+      var k = (l.zustaendig && l.zustaendig.trim()) ? l.zustaendig.trim() : '(nicht zugewiesen)';
+      byZustaendig[k] = byZustaendig[k] || { total:0, gewonnen:0, verloren:0 };
+      byZustaendig[k].total++;
+      if (l.status === 'gewonnen') byZustaendig[k].gewonnen++;
+      if (l.status === 'verloren') byZustaendig[k].verloren++;
+    });
+
+    var byKategorie = { privat:{ total:0, gewonnen:0 }, gewerbe:{ total:0, gewonnen:0 } };
+    leads.forEach(function(l){
+      var k = l.kategorie === 'gewerbe' ? 'gewerbe' : 'privat';
+      byKategorie[k].total++;
+      if (l.status === 'gewonnen') byKategorie[k].gewonnen++;
+    });
+
+    var winDurations = [];
+    leads.forEach(function(l){
+      if (l.status !== 'gewonnen' || !l.erstkontakt) return;
+      var found = (l.notizen||[]).find(function(n){ return n.text.indexOf('Status geändert: ' + STATUS.gewonnen.label) === 0; });
+      if (!found) return;
+      var start = new Date(l.erstkontakt + 'T00:00:00').getTime();
+      var end = new Date(found.datum).getTime();
+      var days = Math.round((end - start) / 86400000);
+      if (days >= 0) winDurations.push(days);
+    });
+    var avgDaysToWin = winDurations.length
+      ? Math.round(winDurations.reduce(function(a,b){ return a+b; },0) / winDurations.length)
+      : null;
+
+    var activeOrders = orders.filter(function(o){ return computeOrderProgress(o).percent !== 100; });
+    var archivedOrders = orders.filter(function(o){ return computeOrderProgress(o).percent === 100; });
+    var avgProgress = activeOrders.length
+      ? Math.round(activeOrders.reduce(function(sum,o){ return sum + computeOrderProgress(o).percent; },0) / activeOrders.length)
+      : null;
+
+    return {
+      total:total, byStatus:byStatus, gewonnen:gewonnen, verloren:verloren, closed:closed, offen:offen,
+      byQuelle:byQuelle, byZustaendig:byZustaendig, byKategorie:byKategorie, avgDaysToWin:avgDaysToWin,
+      activeOrders:activeOrders.length, archivedOrders:archivedOrders.length, avgProgress:avgProgress
+    };
+  }
+
+  function pct(n, d){ return d ? Math.round(n / d * 100) : null; }
+
+  function renderStats(){
+    var wrap = document.getElementById('statsWrap');
+    if (!loaded || !ordersLoaded){ wrap.innerHTML = '<div class="loading">Lade Statistiken …</div>'; return; }
+    if (leads.length === 0){
+      wrap.innerHTML = '<div class="empty"><h3>Noch keine Daten</h3><p>Sobald Leads erfasst sind, siehst du hier die Auswertung.</p></div>';
+      return;
+    }
+    var s = computeStats();
+    var winrateClosed = pct(s.gewonnen, s.closed);
+    var winrateTotal = pct(s.gewonnen, s.total);
+    var lossrateClosed = pct(s.verloren, s.closed);
+
+    var kpis =
+      '<div class="stats-grid">' +
+        '<div class="kpi-card"><div class="kpi-label">Gesamt Leads</div><div class="kpi-value">' + s.total + '</div>' +
+          '<div class="kpi-sub">' + s.offen + ' aktuell offen</div></div>' +
+        '<div class="kpi-card"><div class="kpi-label">Gewonnen</div><div class="kpi-value" style="color:var(--teal)">' + s.gewonnen + '</div>' +
+          '<div class="kpi-sub">' + (winrateTotal!=null ? winrateTotal + '% aller Leads' : '—') + '</div></div>' +
+        '<div class="kpi-card"><div class="kpi-label">Verloren</div><div class="kpi-value" style="color:var(--red)">' + s.verloren + '</div>' +
+          '<div class="kpi-sub">' + (pct(s.verloren,s.total)!=null ? pct(s.verloren,s.total) + '% aller Leads' : '—') + '</div></div>' +
+        '<div class="kpi-card"><div class="kpi-label">Abschlussquote</div><div class="kpi-value" style="color:var(--amber-ink)">' +
+          (winrateClosed!=null ? winrateClosed + '%' : '—') + '</div>' +
+          '<div class="kpi-sub">von ' + s.closed + ' abgeschlossenen Leads</div></div>' +
+      '</div>';
+
+    var maxStatusCount = Math.max.apply(null, STATUS_ORDER.map(function(st){ return s.byStatus[st]; }).concat([1]));
+    var statusBars = STATUS_ORDER.map(function(st){
+      var c = s.byStatus[st];
+      var w = Math.round(c / maxStatusCount * 100);
+      return '<div class="bar-row"><div class="bar-label">' + STATUS[st].label + '</div>' +
+        '<div class="bar-track"><div class="bar-fill" style="width:' + w + '%; background:' + STATUS[st].color + '"></div></div>' +
+        '<div class="bar-value">' + c + '</div></div>';
+    }).join('');
+
+    var quelleRows = Object.keys(s.byQuelle).sort(function(a,b){ return s.byQuelle[b].total - s.byQuelle[a].total; }).map(function(k){
+      var q = s.byQuelle[k];
+      var rate = pct(q.gewonnen, q.total);
+      return '<tr><td>' + (QUELLEN[k]||k) + '</td><td>' + q.total + '</td><td>' + q.gewonnen + '</td><td>' + (rate!=null?rate+'%':'—') + '</td></tr>';
+    }).join('');
+
+    var zRows = Object.keys(s.byZustaendig).sort(function(a,b){ return s.byZustaendig[b].total - s.byZustaendig[a].total; }).map(function(k){
+      var z = s.byZustaendig[k];
+      var rate = pct(z.gewonnen, z.total);
+      return '<tr><td>' + escapeHtml(k) + '</td><td>' + z.total + '</td><td>' + z.gewonnen + '</td><td>' + z.verloren + '</td><td>' + (rate!=null?rate+'%':'—') + '</td></tr>';
+    }).join('');
+
+    var kategorieRows = ['privat','gewerbe'].map(function(k){
+      var kk = s.byKategorie[k];
+      var rate = pct(kk.gewonnen, kk.total);
+      return '<tr><td>' + (k==='gewerbe'?'Gewerbekunde':'Privatkunde') + '</td><td>' + kk.total + '</td><td>' + kk.gewonnen + '</td><td>' + (rate!=null?rate+'%':'—') + '</td></tr>';
+    }).join('');
+
+    var auftragSection =
+      '<div class="stats-section"><h3>Auftragsabwicklung</h3>' +
+        '<div class="stats-grid" style="grid-template-columns:repeat(3,1fr); margin-bottom:0;">' +
+          '<div class="kpi-card"><div class="kpi-label">In Bearbeitung</div><div class="kpi-value">' + s.activeOrders + '</div></div>' +
+          '<div class="kpi-card"><div class="kpi-label">Abgeschlossen</div><div class="kpi-value" style="color:var(--teal)">' + s.archivedOrders + '</div></div>' +
+          '<div class="kpi-card"><div class="kpi-label">Ø Fortschritt aktiv</div><div class="kpi-value">' + (s.avgProgress!=null ? s.avgProgress+'%' : '—') + '</div></div>' +
+        '</div>' +
+      '</div>';
+
+    wrap.innerHTML = kpis +
+      '<div class="stats-section"><h3>Leads nach Status</h3>' + statusBars +
+        (s.avgDaysToWin!=null ? '<div style="margin-top:12px; font-size:12.5px; color:var(--muted);">Ø Zeit bis "Gewonnen": <b style="color:var(--ink)">' + s.avgDaysToWin + ' Tage</b> (ab Erstkontakt)</div>' : '') +
+      '</div>' +
+      '<div class="stats-section"><h3>Privat vs. Gewerbe</h3>' +
+        '<table class="stats-table"><thead><tr><th>Kategorie</th><th>Gesamt</th><th>Gewonnen</th><th>Quote</th></tr></thead><tbody>' + kategorieRows + '</tbody></table>' +
+      '</div>' +
+      auftragSection;
+  }
+
+  function switchView(view){
+    currentView = view;
+    document.getElementById('tabStart').classList.toggle('active', view === 'start');
+    document.getElementById('tabLeads').classList.toggle('active', view === 'leads');
+    document.getElementById('tabAuftraege').classList.toggle('active', view === 'auftraege');
+    document.getElementById('tabBestandskunden').classList.toggle('active', view === 'bestandskunden');
+    document.getElementById('tabTodos').classList.toggle('active', view === 'todos');
+    document.getElementById('tabStats').classList.toggle('active', view === 'statistiken');
+    document.getElementById('view-start').style.display = view === 'start' ? '' : 'none';
+    document.getElementById('view-leads').style.display = view === 'leads' ? '' : 'none';
+    document.getElementById('view-auftraege').style.display = view === 'auftraege' ? '' : 'none';
+    document.getElementById('view-bestandskunden').style.display = view === 'bestandskunden' ? '' : 'none';
+    document.getElementById('view-todos').style.display = view === 'todos' ? '' : 'none';
+    document.getElementById('view-statistiken').style.display = view === 'statistiken' ? '' : 'none';
+    if (view === 'start') renderStart();
+    if (view === 'auftraege') renderOrders();
+    if (view === 'bestandskunden') renderBestandskunden();
+    if (view === 'todos') renderTodos();
+    if (view === 'statistiken') renderStats();
+  }
+
+
+  // ---------- Wiring ----------
+  document.getElementById('btnNew').addEventListener('click', openNewModal);
+  document.getElementById('fileImport').addEventListener('change', function(e){
+    if (e.target.files && e.target.files[0]) importBackup(e.target.files[0]);
+    e.target.value = '';
+  });
+  document.getElementById('search').addEventListener('input', function(e){ searchTerm = e.target.value; render(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeModal(); });
+
+  document.getElementById('tabStart').addEventListener('click', function(){ switchView('start'); });
+  document.getElementById('tabLeads').addEventListener('click', function(){ switchView('leads'); });
+  document.getElementById('tabAuftraege').addEventListener('click', function(){ switchView('auftraege'); });
+  document.getElementById('tabBestandskunden').addEventListener('click', function(){ switchView('bestandskunden'); });
+  document.getElementById('tabTodos').addEventListener('click', function(){ switchView('todos'); });
+  document.getElementById('tabStats').addEventListener('click', function(){ switchView('statistiken'); });
+  document.getElementById('btnNewAuftrag').addEventListener('click', openNewOrderModal);
+  document.getElementById('searchAuftrag').addEventListener('input', function(e){ auftragSearchTerm = e.target.value; renderOrders(); });
+  document.getElementById('searchBestandskunden').addEventListener('input', function(e){ bkSearchTerm = e.target.value; renderBestandskunden(); });
+  document.getElementById('bkSortBy').addEventListener('change', function(e){ bkSortBy = e.target.value; renderBestandskunden(); });
+  document.getElementById('bkJahrFilter').addEventListener('change', function(e){ bkJahrFilter = e.target.value; renderBestandskunden(); });
+  document.getElementById('bkMonatFilter').addEventListener('change', function(e){ bkMonatFilter = e.target.value; renderBestandskunden(); });
+  document.getElementById('bkZahlungsartFilter').addEventListener('change', function(e){ bkZahlungsartFilter = e.target.value; renderBestandskunden(); });
+
+  document.getElementById('btnSettings').addEventListener('click', openSettingsModal);
+
+  loadSettings();
+  loadLeads();
+  loadOrders();
+  loadTodos();
+})();
+</script>
+</body>
+</html>

@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
   :root{
     --paper:#ECEEF0;
@@ -819,9 +820,7 @@
   }
 
   function getZustaendigenOptions(){
-    var fromLeads = leads.map(function(l){ return l.zustaendig; }).filter(Boolean);
-    var all = settings.zustaendige.concat(fromLeads);
-    return Array.from(new Set(all)).sort(function(a,b){ return a.localeCompare(b,'de'); });
+    return settings.zustaendige.slice().sort(function(a,b){ return a.localeCompare(b,'de'); });
   }
 
   function maybeRunMigration(){

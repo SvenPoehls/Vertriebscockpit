@@ -9,7 +9,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
   :root{
     --paper:#ECEEF0;
@@ -286,6 +285,21 @@
   .empty{ text-align:center; padding:60px 20px; color:var(--muted); }
   .empty h3{ font-family:var(--font-display); text-transform:uppercase; color:var(--ink); font-size:16px; margin-bottom:6px; }
   .loading{ text-align:center; padding:60px 20px; color:var(--muted); font-family:var(--font-mono); font-size:13px; }
+  .gate-overlay{
+    position:fixed; inset:0; background:var(--paper); display:flex; align-items:center; justify-content:center;
+    z-index:9999; padding:20px;
+  }
+  .gate-box{
+    background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:36px 32px; max-width:340px; width:100%;
+    text-align:center; box-shadow:0 8px 30px rgba(0,0,0,.15);
+  }
+  .gate-box h2{ font-family:var(--font-display); text-transform:uppercase; font-size:18px; margin:0 0 6px; }
+  .gate-box p{ color:var(--muted); font-size:12.5px; margin:0 0 20px; }
+  .gate-box input{
+    width:100%; border:1px solid var(--line); border-radius:8px; padding:11px 12px; font-size:16px; text-align:center;
+    background:var(--surface); color:var(--ink); margin-bottom:12px; letter-spacing:1px;
+  }
+  .gate-box .gate-error{ color:var(--red); font-size:12px; margin-bottom:10px; min-height:16px; }
   .toast{
     position:fixed; bottom:20px; right:20px; background:var(--ink); color:var(--paper); padding:10px 16px; border-radius:8px; font-size:13px; font-weight:600; opacity:0; transform:translateY(8px); transition:all .2s; pointer-events:none; z-index:80;
   }
@@ -556,6 +570,7 @@
 (function(){
   "use strict";
 
+  // ---------- Firebase-Grundinitialisierung (wird sowohl für die Zugangssperre als auch die App selbst gebraucht) ----------
   var firebaseConfig = {
     apiKey: "AIzaSyDGije5V6_3tKYTaNCIY-AnOWqSKG2pmOo",
     authDomain: "vertriebs-copilot.firebaseapp.com",
@@ -577,6 +592,69 @@
     if (!fbDb) throw new Error('Keine Verbindung zur Datenbank');
     return fbDb.ref(path);
   }
+
+  // ---------- Zugangscode-Sperre ----------
+  var ACCESS_CODE_DEFAULT = "Autohaus2026"; // wird nur verwendet, solange noch kein Code in der Datenbank gespeichert ist
+  var GATE_KEY = "vc_zugang_freigegeben";
+  var currentAccessCode = ACCESS_CODE_DEFAULT;
+
+  function showGate(){
+    document.body.innerHTML =
+      '<div class="gate-overlay" id="gateOverlay">' +
+        '<div class="gate-box">' +
+          '<h2>🔒 Zugang erforderlich</h2>' +
+          '<p>Bitte den Zugangscode eingeben, um das Vertriebscockpit zu öffnen.</p>' +
+          '<input type="password" id="gateInput" placeholder="Zugangscode" autocomplete="off">' +
+          '<div class="gate-error" id="gateError"></div>' +
+          '<button class="btn btn-primary" id="gateSubmit" style="width:100%;">Zugang freischalten</button>' +
+        '</div>' +
+      '</div>';
+    var input = document.getElementById('gateInput');
+    var errorEl = document.getElementById('gateError');
+    function tryUnlock(){
+      if (input.value === currentAccessCode){
+        try { window.localStorage.setItem(GATE_KEY, currentAccessCode); } catch (e) { /* Speicherung optional */ }
+        location.reload();
+      } else {
+        errorEl.textContent = 'Falscher Code — bitte erneut versuchen.';
+        input.value = '';
+        input.focus();
+      }
+    }
+    document.getElementById('gateSubmit').addEventListener('click', tryUnlock);
+    input.addEventListener('keydown', function(e){ if (e.key === 'Enter') tryUnlock(); });
+    input.focus();
+  }
+
+  function proceedAfterCodeCheck(){
+    var savedCode = null;
+    try { savedCode = window.localStorage.getItem(GATE_KEY); } catch (e) { /* kein localStorage verfügbar */ }
+    if (savedCode === currentAccessCode){
+      initMainApp();
+    } else {
+      showGate();
+    }
+  }
+
+  // Aktuellen Zugangscode aus der Datenbank laden (mit Timeout-Fallback, falls keine Verbindung besteht)
+  (function checkAccessCode(){
+    var resolved = false;
+    function finish(code){
+      if (resolved) return;
+      resolved = true;
+      if (code) currentAccessCode = code;
+      proceedAfterCodeCheck();
+    }
+    if (!fbDb){ finish(null); return; }
+    try {
+      dbRef('config/zugangscode').once('value').then(function(snap){
+        finish(snap.val());
+      }).catch(function(){ finish(null); });
+    } catch (e) { finish(null); }
+    setTimeout(function(){ finish(null); }, 4000); // bei sehr langsamer/fehlender Verbindung nicht ewig blockieren
+  })();
+
+  function initMainApp(){
   function setSyncStatus(text, ok){
     var el = document.getElementById('syncStatus');
     if (el){ el.textContent = text; el.style.color = ok ? 'var(--teal)' : 'var(--red)'; }
@@ -2882,6 +2960,8 @@
   loadLeads();
   loadOrders();
   loadTodos();
+
+  } // Ende initMainApp
 })();
 </script>
 </body>

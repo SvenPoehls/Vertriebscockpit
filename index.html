@@ -1985,6 +1985,30 @@
         var step = ORDER_STEPS.find(function(s){ return s.key === key; });
         var wantsChecked = cb.checked;
 
+        // Fall: "Fahrzeugzulassung" wird direkt angehakt, obwohl noch nicht alle Unterlagen erledigt sind -> bestätigen
+        if (key === 'fahrzeugZugelassen' && wantsChecked && !order.eigenzulassung){
+          var zulassungDocs = zulassungUnterlagenFor(order);
+          var zulassungAllDone = zulassungDocs.every(function(d){ return !!(order.zulassungUnterlagen && order.zulassungUnterlagen[d.key]); });
+          if (!zulassungAllDone){
+            cb.checked = false; // visuell zurücksetzen bis bestätigt
+            openConfirmModal({
+              title:'Alle Unterlagen vollständig?',
+              message:'Sind alle Unterlagen vorhanden (' + zulassungDocs.map(function(d){ return d.label; }).join(', ') + ')? Sie werden dann automatisch mit abgehakt.',
+              confirmLabel:'Ja, vollständig',
+              cancelLabel:'Noch nicht',
+              onConfirm:function(){
+                order.zulassungUnterlagen = order.zulassungUnterlagen || {};
+                zulassungDocs.forEach(function(d){ order.zulassungUnterlagen[d.key] = true; });
+                order.fahrzeugZugelassen = true;
+                persistOrders();
+                showToast('Fahrzeugzulassung abgeschlossen');
+                refresh();
+              }
+            });
+            return;
+          }
+        }
+
         // Fall: "Fahrzeug ausgeliefert" wird angehakt -> bestätigen, dann ALLE Punkte abhaken
         if (key === 'fahrzeugAusgeliefert' && wantsChecked){
           cb.checked = false; // visuell zurücksetzen bis bestätigt
@@ -2056,7 +2080,12 @@
         var key = cb.getAttribute('data-zulassungdoc');
         order.zulassungUnterlagen = order.zulassungUnterlagen || {};
         order.zulassungUnterlagen[key] = cb.checked;
+        // "Fahrzeugzulassung" ist automatisch fertig, sobald alle Unterlagen vorhanden sind (und umgekehrt)
+        var allDocsDone = zulassungUnterlagenFor(order).every(function(d){ return !!order.zulassungUnterlagen[d.key]; });
+        var wasDone = order.fahrzeugZugelassen;
+        order.fahrzeugZugelassen = allDocsDone;
         persistOrders();
+        if (allDocsDone && !wasDone) showToast('Fahrzeugzulassung abgeschlossen');
         refresh();
       });
     });

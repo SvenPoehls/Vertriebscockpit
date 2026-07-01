@@ -673,7 +673,7 @@
     { key:'zahlungseingangGeprueft',   label:'Zahlungseingang prüfen',           relevant: function(){ return true; } },
     { key:'ankaufsvertragAusgedruckt', label:'Ankaufsvertrag ausgedruckt',       relevant: function(o){ return !!o.eigenzulassung; } },
     { key:'auslieferungsterminFestgelegt', label:'Auslieferungstermin festgelegt', relevant: function(){ return true; }, hasDate:true, assignable:true },
-    { key:'fahrzeugAusgeliefert',      label:'Fahrzeug ausgeliefert',           relevant: function(){ return true; }, hasDate:true, assignable:true }
+    { key:'fahrzeugAusgeliefert',      label:'Fahrzeug ausgeliefert',           relevant: function(){ return true; }, hasDate:true, hideDateField:true, assignable:true }
   ];
 
   function uid(){
@@ -1774,7 +1774,7 @@
       getZustaendigenOptions().map(function(n){ return '<option value="' + escapeHtml(n) + '">' + escapeHtml(n) + '</option>'; }).join('');
     var checklist = relevantSteps(o).map(function(s){
       var checked = !!o[s.key];
-      var dateField = s.hasDate
+      var dateField = (s.hasDate && !s.hideDateField)
         ? '<input type="date" data-datefor="' + s.key + '" value="' + escapeHtml(o[s.key + 'Datum'] || '') + '"' + (checked?'':' disabled') + '>'
         : '';
       var assignedTo = (o.stepAssignee && o.stepAssignee[s.key]) || '';
@@ -2014,7 +2014,8 @@
       persistOrders();
       generateLeasingTodos();
       showToast('Änderungen gespeichert');
-      refresh();
+      renderOrders();
+      closeModal();
     });
     var noteBtn = detailRow.querySelector('[data-oaction="addnote"]');
     noteBtn.addEventListener('click', function(){

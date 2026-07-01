@@ -2015,7 +2015,17 @@
         var pseudo = linkedLead
           ? Object.assign({}, linkedLead, { name:kunde, fahrzeug:fahrzeug, kategorie:kategorie, fahrzeugtyp:fahrzeugtyp })
           : { id:null, name:kunde, fahrzeug:fahrzeug, zustaendig:prefill.zustaendig||'', kategorie:kategorie, fahrzeugtyp:fahrzeugtyp };
-        var order = createOrderFromLead(pseudo, zahlungsart);
+        // Falls beim Anlegen des Leads (Status "gewonnen") bereits automatisch ein Auftrag erzeugt wurde,
+        // diesen wiederverwenden statt einen doppelten Auftrag für denselben Kunden anzulegen
+        var existing = linkedLead ? orders.find(function(o){ return o.leadId === linkedLead.id; }) : null;
+        var order = existing || createOrderFromLead(pseudo, zahlungsart);
+        if (existing){
+          order.kunde = kunde;
+          order.fahrzeug = fahrzeug;
+          order.kategorie = kategorie;
+          order.fahrzeugtyp = fahrzeugtyp;
+          order.zahlungsart = zahlungsart;
+        }
         order.eigenzulassung = eigenzulassung;
         order.inzahlungnahme = inzahlungnahme;
         persistOrders();

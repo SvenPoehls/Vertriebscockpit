@@ -672,7 +672,8 @@
     { key:'aufbereitet',               label:'Aufbereitungsauftrag geschrieben', relevant: function(){ return true; }, assignable:true },
     { key:'zahlungseingangGeprueft',   label:'Zahlungseingang prüfen',           relevant: function(){ return true; } },
     { key:'ankaufsvertragAusgedruckt', label:'Ankaufsvertrag ausgedruckt',       relevant: function(o){ return !!o.eigenzulassung; } },
-    { key:'fahrzeugAusgeliefert',      label:'Auslieferungstermin festgelegt',   relevant: function(){ return true; }, hasDate:true, assignable:true }
+    { key:'auslieferungsterminFestgelegt', label:'Auslieferungstermin festgelegt', relevant: function(){ return true; }, hasDate:true, assignable:true },
+    { key:'fahrzeugAusgeliefert',      label:'Fahrzeug ausgeliefert',           relevant: function(){ return true; }, hasDate:true, assignable:true }
   ];
 
   function uid(){
@@ -987,6 +988,7 @@
       aufbereitet: false,
       zahlungseingangGeprueft: false,
       ankaufsvertragAusgedruckt: false,
+      auslieferungsterminFestgelegt: false, auslieferungsterminFestgelegtDatum:'',
       fahrzeugAusgeliefert: false, fahrzeugAusgeliefertDatum:'',
       stepAssignee: {},
       notizen: [],
@@ -1949,7 +1951,7 @@
         var step = ORDER_STEPS.find(function(s){ return s.key === key; });
         var wantsChecked = cb.checked;
 
-        // Fall: "Auslieferungstermin festgelegt" wird angehakt -> bestätigen, dann ALLE Punkte abhaken
+        // Fall: "Fahrzeug ausgeliefert" wird angehakt -> bestätigen, dann ALLE Punkte abhaken
         if (key === 'fahrzeugAusgeliefert' && wantsChecked){
           cb.checked = false; // visuell zurücksetzen bis bestätigt
           openConfirmModal({

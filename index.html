@@ -193,6 +193,15 @@
   .wv-upcoming{ background:var(--tint-steel); color:var(--steel); }
   .chevron{ color:var(--muted); transition:transform .15s; }
   .chevron.open{ transform:rotate(90deg); }
+  .name-suggestions{
+    position:absolute; left:0; right:0; top:100%; z-index:30; background:var(--surface); border:1px solid var(--line);
+    border-radius:8px; margin-top:4px; box-shadow:0 4px 14px rgba(0,0,0,.12); overflow:hidden; display:none;
+  }
+  .name-suggestions.show{ display:block; }
+  .name-suggestion-item{ padding:9px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--line); }
+  .name-suggestion-item:last-child{ border-bottom:none; }
+  .name-suggestion-item:hover{ background:var(--paper); }
+  .name-suggestion-item .ns-meta{ color:var(--muted); font-size:11.5px; margin-top:2px; }
 
   /* Plate chip — signature element */
   .plate{
@@ -995,7 +1004,8 @@
     return createOrderFromLead(lead, 'barkauf');
   }
 
-  async function createLead(data){
+  async function createLead(data, opts){
+    opts = opts || {};
     var lead = {
       id: uid(),
       name: data.name.trim(),
@@ -1015,10 +1025,10 @@
     leads.unshift(lead);
     await persist();
     render();
-    if (lead.status === 'gewonnen'){
+    if (lead.status === 'gewonnen' && !opts.skipAutoOrder){
       ensureOrderForLead(lead);
       showToast('Lead angelegt — Auftrag in der Auftragsabwicklung erstellt');
-    } else {
+    } else if (!opts.skipAutoOrder){
       showToast('Lead angelegt');
     }
   }
@@ -2022,17 +2032,22 @@
     });
   }
 
+  function findLeadByExactName(name){
+    var key = (name || '').trim().toLowerCase();
+    if (!key) return null;
+    // Bei mehreren Treffern den zuletzt angelegten nehmen
+    var matches = leads.filter(function(l){ return (l.name || '').trim().toLowerCase() === key; });
+    matches.sort(function(a,b){ return (b.erstelltAm||'').localeCompare(a.erstelltAm||''); });
+    return matches[0] || null;
+  }
+
   function openNewOrderModal(prefill){
     prefill = prefill || {};
-    var leadsWithoutOrder = leads.filter(function(l){ return !orders.some(function(o){ return o.leadId === l.id; }); });
-    var leadOptions = '<option value="">– Keinen Lead verknüpfen –</option>' + leadsWithoutOrder.map(function(l){
-      return '<option value="' + l.id + '"' + (prefill.leadId===l.id?' selected':'') + '>' + escapeHtml(l.name) + ' · ' + escapeHtml(l.fahrzeug) + '</option>';
-    }).join('');
     var html = '<div class="modal-overlay" id="overlay"><div class="modal">' +
       '<h2>Auftrag anlegen</h2>' +
       '<div class="field-grid">' +
-        '<div class="field full"><label>Vorhandenen Lead verknüpfen (optional)</label><select id="om_lead">' + leadOptions + '</select></div>' +
-        '<div class="field"><label>Kunde *</label><input type="text" id="om_kunde" value="' + escapeHtml(prefill.kunde||'') + '"></div>' +
+        '<div class="field full" style="position:relative;"><label>Kunde *</label><input type="text" id="om_kunde" autocomplete="off" value="' + escapeHtml(prefill.kunde||'') + '">' +
+          '<div id="om_kunde_suggestions" class="name-suggestions"></div></div>' +
         '<div class="field"><label>Fahrzeug *</label><input type="text" id="om_fahrzeug" value="' + escapeHtml(prefill.fahrzeug||'') + '"></div>' +
         '<div class="field"><label>Kategorie</label><select id="om_kategorie">' +
           '<option value="privat"' + (prefill.kategorie!=='gewerbe'?' selected':'') + '>Privatkunde</option>' +
@@ -2059,22 +2074,62 @@
     document.getElementById('modalRoot').innerHTML = html;
     document.getElementById('om_cancel').addEventListener('click', closeModal);
     document.getElementById('overlay').addEventListener('click', function(e){ if (e.target.id === 'overlay') closeModal(); });
-    var leadSel = document.getElementById('om_lead');
-    leadSel.addEventListener('change', function(){
-      var lead = leads.find(function(l){ return l.id === leadSel.value; });
-      if (lead){
-        document.getElementById('om_kunde').value = lead.name;
-        document.getElementById('om_fahrzeug').value = lead.fahrzeug;
-        document.getElementById('om_kategorie').value = lead.kategorie || 'privat';
-        document.getElementById('om_fahrzeugtyp').value = lead.fahrzeugtyp || 'gebraucht';
-      }
+
+    var kundeInput = document.getElementById('om_kunde');
+    var suggestBox = document.getElementById('om_kunde_suggestions');
+    var matchedLead = prefill.leadId ? (leads.find(function(l){ return l.id === prefill.leadId; }) || null) : null;
+
+    function applyMatch(lead){
+      matchedLead = lead;
+      kundeInput.value = lead.name;
+      document.getElementById('om_kategorie').value = lead.kategorie || 'privat';
+      document.getElementById('om_fahrzeugtyp').value = lead.fahrzeugtyp || 'gebraucht';
+    }
+
+    kundeInput.addEventListener('input', function(e){
+      matchedLead = null; // getippter Name weicht vom zuletzt ausgewählten Vorschlag ab
+      var typed = e.target.value.trim();
+      if (typed.length < 2){ suggestBox.classList.remove('show'); suggestBox.innerHTML = ''; return; }
+      var seen = {};
+      var matches = leads.filter(function(l){
+        var name = (l.name || '').trim();
+        if (!name || name.toLowerCase().indexOf(typed.toLowerCase()) === -1) return false;
+        var key = name.toLowerCase();
+        if (seen[key]) return false; // pro Name nur ein Vorschlag (jeweils neuester Lead via findLeadByExactName)
+        seen[key] = true;
+        return true;
+      }).slice(0, 5);
+      if (matches.length === 0){ suggestBox.classList.remove('show'); suggestBox.innerHTML = ''; return; }
+      suggestBox.innerHTML = matches.map(function(l){
+        var vehicleCount = orders.filter(function(o){ return o.leadId === l.id; }).length;
+        var sub = (l.kategorie === 'gewerbe' ? 'Gewerbekunde' : 'Privatkunde') +
+          (vehicleCount > 0 ? ' · ' + vehicleCount + ' Fahrzeug' + (vehicleCount===1?'':'e') : ' · noch kein Fahrzeug');
+        return '<div class="name-suggestion-item" data-leadid="' + l.id + '">' + escapeHtml(l.name) +
+          '<div class="ns-meta">' + sub + '</div></div>';
+      }).join('');
+      suggestBox.classList.add('show');
+      suggestBox.querySelectorAll('[data-leadid]').forEach(function(item){
+        item.addEventListener('click', function(){
+          var lead = leads.find(function(l){ return l.id === item.getAttribute('data-leadid'); });
+          suggestBox.classList.remove('show');
+          suggestBox.innerHTML = '';
+          if (lead) applyMatch(lead);
+        });
+      });
     });
+    kundeInput.addEventListener('blur', function(){
+      setTimeout(function(){ suggestBox.classList.remove('show'); }, 150);
+    });
+
     document.getElementById('om_save').addEventListener('click', function(){
-      var kunde = document.getElementById('om_kunde').value.trim();
+      var kunde = kundeInput.value.trim();
       var fahrzeug = document.getElementById('om_fahrzeug').value.trim();
       if (!kunde || !fahrzeug){ showToast('Kunde und Fahrzeug sind erforderlich'); return; }
-      var leadId = leadSel.value || null;
-      var lead = leadId ? leads.find(function(l){ return l.id === leadId; }) : null;
+      // Falls kein Vorschlag angeklickt wurde, aber der eingegebene Name exakt zu einem bestehenden Kunden passt:
+      // trotzdem denselben Kunden verwenden statt einen doppelten Lead anzulegen
+      var lead = (matchedLead && matchedLead.name.trim().toLowerCase() === kunde.toLowerCase())
+        ? matchedLead
+        : findLeadByExactName(kunde);
       var kategorie = document.getElementById('om_kategorie').value;
       var fahrzeugtyp = document.getElementById('om_fahrzeugtyp').value;
       var zahlungsart = document.getElementById('om_zahlungsart').value;
@@ -2085,17 +2140,7 @@
         var pseudo = linkedLead
           ? Object.assign({}, linkedLead, { name:kunde, fahrzeug:fahrzeug, kategorie:kategorie, fahrzeugtyp:fahrzeugtyp })
           : { id:null, name:kunde, fahrzeug:fahrzeug, zustaendig:prefill.zustaendig||'', kategorie:kategorie, fahrzeugtyp:fahrzeugtyp };
-        // Falls beim Anlegen des Leads (Status "gewonnen") bereits automatisch ein Auftrag erzeugt wurde,
-        // diesen wiederverwenden statt einen doppelten Auftrag für denselben Kunden anzulegen
-        var existing = linkedLead ? orders.find(function(o){ return o.leadId === linkedLead.id; }) : null;
-        var order = existing || createOrderFromLead(pseudo, zahlungsart);
-        if (existing){
-          order.kunde = kunde;
-          order.fahrzeug = fahrzeug;
-          order.kategorie = kategorie;
-          order.fahrzeugtyp = fahrzeugtyp;
-          order.zahlungsart = zahlungsart;
-        }
+        var order = createOrderFromLead(pseudo, zahlungsart);
         order.eigenzulassung = eigenzulassung;
         order.inzahlungnahme = inzahlungnahme;
         persistOrders();
@@ -2116,7 +2161,7 @@
         createLead({
           name:kunde, kategorie:kategorie, fahrzeugtyp:fahrzeugtyp,
           fahrzeug:fahrzeug, quelle:'sonstiges', status:'gewonnen', erstkontakt:todayISO(), wiedervorlage:'', zustaendig:''
-        }).then(function(){
+        }, { skipAutoOrder:true }).then(function(){
           finalizeOrder(leads[0]);
         });
       }

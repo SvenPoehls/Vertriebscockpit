@@ -1642,8 +1642,12 @@
     }).sort(function(a,b){ return b.erstelltAm.localeCompare(a.erstelltAm); });
   }
 
+  function customerNameKey(name){
+    return (name || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  }
+
   function orderCustomerKey(o){
-    return (o.kunde || '').trim().toLowerCase();
+    return customerNameKey(o.kunde);
   }
 
   // Mehrere Fahrzeuge desselben Kunden (gleicher Name) zu einer Zeile zusammenfassen
@@ -1701,10 +1705,9 @@
     var row =
       '<tr class="row" data-gkey="' + escapeHtml(g.key) + '">' +
         '<td data-label="Kunde"><div class="kunde-name">' + escapeHtml(g.kunde) +
-          (extraCount > 0 ? '<span class="kunde-extra-badge">+' + extraCount + '</span>' : '') +
           ' <span class="auftrag-tag ' + (main.kategorie==='gewerbe'?'tag-gewerbe':'tag-privat') + '" style="margin-left:4px; vertical-align:middle;">' + (main.kategorie==='gewerbe'?'Gewerbe':'Privat') + '</span>' +
           ' <span class="auftrag-tag ' + fahrzeugtypTagClass(main.fahrzeugtyp) + '" style="margin-left:2px; vertical-align:middle;">' + (FAHRZEUGTYPEN[main.fahrzeugtyp] || 'Gebrauchtwagen') + '</span></div></td>' +
-        '<td data-label="Fahrzeug">' + plateChip(main.fahrzeug) + '</td>' +
+        '<td data-label="Fahrzeug">' + plateChip(main.fahrzeug) + (extraCount > 0 ? '<span class="kunde-extra-badge">+' + extraCount + '</span>' : '') + '</td>' +
         '<td data-label="Zahlungsart"><span class="auftrag-tag tag-zahlung-' + (main.zahlungsart||'barkauf') + '">' + (ZAHLUNGSARTEN[main.zahlungsart] || main.zahlungsart) + '</span></td>' +
         '<td data-label="Status"><span class="auftrag-tag ' + tag.cls + '">' + tag.label + '</span></td>' +
         '<td data-label="Fortschritt"><div class="progress-wrap"><div class="progress-track">' +
@@ -2033,10 +2036,10 @@
   }
 
   function findLeadByExactName(name){
-    var key = (name || '').trim().toLowerCase();
+    var key = customerNameKey(name);
     if (!key) return null;
     // Bei mehreren Treffern den zuletzt angelegten nehmen
-    var matches = leads.filter(function(l){ return (l.name || '').trim().toLowerCase() === key; });
+    var matches = leads.filter(function(l){ return customerNameKey(l.name) === key; });
     matches.sort(function(a,b){ return (b.erstelltAm||'').localeCompare(a.erstelltAm||''); });
     return matches[0] || null;
   }
@@ -2094,14 +2097,16 @@
       var matches = leads.filter(function(l){
         var name = (l.name || '').trim();
         if (!name || name.toLowerCase().indexOf(typed.toLowerCase()) === -1) return false;
-        var key = name.toLowerCase();
-        if (seen[key]) return false; // pro Name nur ein Vorschlag (jeweils neuester Lead via findLeadByExactName)
+        var key = customerNameKey(name);
+        if (seen[key]) return false; // pro Kunde (Name) nur ein Vorschlag, unabhängig davon, wie viele Lead-Datensätze es dafür gibt
         seen[key] = true;
         return true;
       }).slice(0, 5);
       if (matches.length === 0){ suggestBox.classList.remove('show'); suggestBox.innerHTML = ''; return; }
       suggestBox.innerHTML = matches.map(function(l){
-        var vehicleCount = orders.filter(function(o){ return o.leadId === l.id; }).length;
+        // Nach Namen zählen (nicht nur nach dieser einen Lead-Id), damit auch Fahrzeuge über evtl.
+        // mehrere Lead-Datensätze desselben Kunden hinweg korrekt mitgezählt werden
+        var vehicleCount = orders.filter(function(o){ return orderCustomerKey(o) === customerNameKey(l.name); }).length;
         var sub = (l.kategorie === 'gewerbe' ? 'Gewerbekunde' : 'Privatkunde') +
           (vehicleCount > 0 ? ' · ' + vehicleCount + ' Fahrzeug' + (vehicleCount===1?'':'e') : ' · noch kein Fahrzeug');
         return '<div class="name-suggestion-item" data-leadid="' + l.id + '">' + escapeHtml(l.name) +
@@ -2127,7 +2132,7 @@
       if (!kunde || !fahrzeug){ showToast('Kunde und Fahrzeug sind erforderlich'); return; }
       // Falls kein Vorschlag angeklickt wurde, aber der eingegebene Name exakt zu einem bestehenden Kunden passt:
       // trotzdem denselben Kunden verwenden statt einen doppelten Lead anzulegen
-      var lead = (matchedLead && matchedLead.name.trim().toLowerCase() === kunde.toLowerCase())
+      var lead = (matchedLead && customerNameKey(matchedLead.name) === customerNameKey(kunde))
         ? matchedLead
         : findLeadByExactName(kunde);
       var kategorie = document.getElementById('om_kategorie').value;

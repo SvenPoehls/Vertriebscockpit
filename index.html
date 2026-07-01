@@ -412,6 +412,8 @@
   }
   .checklist-item select{ border:1px solid var(--line); border-radius:6px; padding:5px 7px; font-size:12px; }
   .step-assignee{ max-width:110px; background:var(--surface); color:var(--ink); flex:none; }
+  .eigenzulassung-select{ max-width:170px; background:var(--surface); color:var(--ink); flex:none; }
+  .zulassung-subpanel{ display:flex; flex-direction:column; gap:6px; margin:-2px 0 2px 0; }
   .lead-snapshot{
     display:flex; flex-wrap:wrap; gap:18px; background:var(--surface); border:1px solid var(--line); border-radius:8px;
     padding:12px 14px; padding-right:40px; margin-bottom:14px; font-size:13px; position:relative;
@@ -676,6 +678,19 @@
     { key:'auslieferungsterminFestgelegt', label:'Auslieferungstermin festgelegt', relevant: function(){ return true; }, hasDate:true },
     { key:'fahrzeugAusgeliefert',      label:'Fahrzeug ausgeliefert',           relevant: function(){ return true; }, hasDate:true, hideDateField:true }
   ];
+
+  var ZULASSUNG_UNTERLAGEN = [
+    { key:'fahrzeugbrief',      label:'Fahrzeugbrief' },
+    { key:'personalausweis',    label:'Personalausweis' },
+    { key:'evbNummer',          label:'EVB-Nummer' },
+    { key:'wunschkennzeichen',  label:'Wunschkennzeichen (ggf.)' }
+  ];
+  function zulassungUnterlagenFor(o){
+    var docs = ZULASSUNG_UNTERLAGEN.slice();
+    if (o.kategorie === 'gewerbe') docs.push({ key:'unternehmensunterlagen', label:'Unternehmensunterlagen' });
+    return docs;
+  }
+  var zulassungPanelOpen = false;
 
   function uid(){
     if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -980,6 +995,7 @@
       zustaendig: lead.zustaendig,
       zahlungsart: zahlungsart || 'barkauf',
       eigenzulassung: false,
+      zulassungUnterlagen: {},
       inzahlungnahme: false,
       vertragVorhanden: false,
       bestellungUnterschrieben: false,
@@ -1611,7 +1627,7 @@
     });
   }
 
-  function closeModal(){ document.getElementById('modalRoot').innerHTML = ''; }
+  function closeModal(){ document.getElementById('modalRoot').innerHTML = ''; zulassungPanelOpen = false; }
 
   // ---------- Auftragsabwicklung: Rendering ----------
   function relevantSteps(o){ return ORDER_STEPS.filter(function(s){ return s.relevant(o); }); }
@@ -1786,6 +1802,33 @@
       }
       lastGroup = s.group || null;
       var indentStyle = s.group ? ' style="margin-left:14px;"' : '';
+
+      if (s.key === 'fahrzeugZugelassen'){
+        var isEigenzulassung = !!o.eigenzulassung;
+        var eigenSelect = '<select data-eigenzulassung class="eigenzulassung-select">' +
+          '<option value="false"' + (!isEigenzulassung?' selected':'') + '>Eigenzulassung: Nein</option>' +
+          '<option value="true"' + (isEigenzulassung?' selected':'') + '>Eigenzulassung: Ja</option>' +
+        '</select>';
+        var toggle = !isEigenzulassung
+          ? '<span class="chevron' + (zulassungPanelOpen?' open':'') + '" data-zulassung-toggle title="Unterlagen anzeigen" style="cursor:pointer;">›</span>'
+          : '';
+        var subpanel = '';
+        if (!isEigenzulassung && zulassungPanelOpen){
+          var docItems = zulassungUnterlagenFor(o).map(function(d){
+            var dChecked = !!(o.zulassungUnterlagen && o.zulassungUnterlagen[d.key]);
+            return '<div class="checklist-item' + (dChecked?' checked':'') + '" style="margin-left:14px;">' +
+              '<input type="checkbox" data-zulassungdoc="' + d.key + '"' + (dChecked?' checked':'') + '>' +
+              '<label>' + d.label + '</label>' +
+            '</div>';
+          }).join('');
+          subpanel = '<div class="zulassung-subpanel">' + docItems + '</div>';
+        }
+        return groupHeader + '<div class="checklist-item' + (checked?' checked':'') + '"' + indentStyle + '>' +
+          '<input type="checkbox" data-step="' + s.key + '"' + (checked?' checked':'') + '>' +
+          '<label>' + s.label + '</label>' + eigenSelect + toggle +
+        '</div>' + subpanel;
+      }
+
       return groupHeader + '<div class="checklist-item' + (checked?' checked':'') + '"' + indentStyle + '>' +
         '<input type="checkbox" data-step="' + s.key + '"' + (checked?' checked':'') + '>' +
         '<label>' + s.label + '</label>' + dateField + assignField +
@@ -1989,6 +2032,32 @@
         persistOrders();
         syncStepTodo(order, key);
         showToast(sel.value ? 'Zuständig: ' + sel.value + ' — als To-Do angelegt' : 'Zuständigkeit entfernt');
+      });
+    });
+    var eigenSel = detailRow.querySelector('[data-eigenzulassung]');
+    if (eigenSel){
+      eigenSel.addEventListener('click', function(e){ e.stopPropagation(); });
+      eigenSel.addEventListener('change', function(){
+        order.eigenzulassung = eigenSel.value === 'true';
+        persistOrders();
+        refresh();
+      });
+    }
+    var zulassungToggle = detailRow.querySelector('[data-zulassung-toggle]');
+    if (zulassungToggle){
+      zulassungToggle.addEventListener('click', function(e){
+        e.stopPropagation();
+        zulassungPanelOpen = !zulassungPanelOpen;
+        refresh();
+      });
+    }
+    detailRow.querySelectorAll('[data-zulassungdoc]').forEach(function(cb){
+      cb.addEventListener('change', function(){
+        var key = cb.getAttribute('data-zulassungdoc');
+        order.zulassungUnterlagen = order.zulassungUnterlagen || {};
+        order.zulassungUnterlagen[key] = cb.checked;
+        persistOrders();
+        refresh();
       });
     });
     detailRow.querySelectorAll('[data-ofield]').forEach(function(el){

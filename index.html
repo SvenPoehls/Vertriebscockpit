@@ -367,9 +367,10 @@
   .progress-fill.done{ background:var(--teal); }
   .progress-text{ font-family:var(--font-mono); font-size:11.5px; color:var(--muted); white-space:nowrap; }
 
+  .fahrzeug-stack{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; }
   .kunde-extra-badge{
     display:inline-block; font-size:10.5px; font-weight:700; color:var(--amber-ink); background:var(--tint-amber);
-    border-radius:10px; padding:1px 6px; margin-left:5px; vertical-align:super;
+    border-radius:10px; padding:1px 6px;
   }
   .auftrag-vehicle-row{
     display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 12px;
@@ -1709,7 +1710,8 @@
         '<td data-label="Kunde"><div class="kunde-name">' + escapeHtml(g.kunde) +
           ' <span class="auftrag-tag ' + (main.kategorie==='gewerbe'?'tag-gewerbe':'tag-privat') + '" style="margin-left:4px; vertical-align:middle;">' + (main.kategorie==='gewerbe'?'Gewerbe':'Privat') + '</span>' +
           ' <span class="auftrag-tag ' + fahrzeugtypTagClass(main.fahrzeugtyp) + '" style="margin-left:2px; vertical-align:middle;">' + (FAHRZEUGTYPEN[main.fahrzeugtyp] || 'Gebrauchtwagen') + '</span></div></td>' +
-        '<td data-label="Fahrzeug">' + plateChip(main.fahrzeug) + (extraCount > 0 ? '<span class="kunde-extra-badge">+' + extraCount + '</span>' : '') + '</td>' +
+        '<td data-label="Fahrzeug"><div class="fahrzeug-stack">' + plateChip(main.fahrzeug) +
+          (extraCount > 0 ? '<span class="kunde-extra-badge">+' + extraCount + '</span>' : '') + '</div></td>' +
         '<td data-label="Zahlungsart"><span class="auftrag-tag tag-zahlung-' + (main.zahlungsart||'barkauf') + '">' + (ZAHLUNGSARTEN[main.zahlungsart] || main.zahlungsart) + '</span></td>' +
         '<td data-label="Status"><span class="auftrag-tag ' + tag.cls + '">' + tag.label + '</span></td>' +
         '<td data-label="Fortschritt"><div class="progress-wrap"><div class="progress-track">' +

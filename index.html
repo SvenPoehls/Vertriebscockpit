@@ -358,6 +358,17 @@
   .progress-fill.done{ background:var(--teal); }
   .progress-text{ font-family:var(--font-mono); font-size:11.5px; color:var(--muted); white-space:nowrap; }
 
+  .kunde-extra-badge{
+    display:inline-block; font-size:10.5px; font-weight:700; color:var(--amber-ink); background:var(--tint-amber);
+    border-radius:10px; padding:1px 6px; margin-left:5px; vertical-align:super;
+  }
+  .auftrag-vehicle-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 12px;
+    border:1px solid var(--line); border-radius:7px; background:var(--surface); margin-bottom:6px; cursor:pointer;
+  }
+  .auftrag-vehicle-row:hover{ background:var(--surface-muted); }
+  .auftrag-vehicles-panel{ padding:12px 16px 14px; background:var(--surface-muted); }
+
   .auftrag-tag{
     display:inline-block; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:20px;
   }
@@ -1253,7 +1264,7 @@
           render();
         });
       });
-      var detailRow = document.querySelector('tr.detail-row');
+      var detailRow = wrap.querySelector('tr.detail-row');
       if (detailRow) wireDetail(detailRow);
     }
 
@@ -1621,6 +1632,28 @@
     }).sort(function(a,b){ return b.erstelltAm.localeCompare(a.erstelltAm); });
   }
 
+  function orderCustomerKey(o){
+    return (o.kunde || '').trim().toLowerCase();
+  }
+
+  // Mehrere Fahrzeuge desselben Kunden (gleicher Name) zu einer Zeile zusammenfassen
+  function groupOrdersByCustomer(list){
+    var groups = {};
+    var ordered = [];
+    list.forEach(function(o){
+      var key = orderCustomerKey(o);
+      if (!groups[key]){
+        groups[key] = { key:key, orders:[] };
+        ordered.push(groups[key]);
+      }
+      groups[key].orders.push(o);
+    });
+    // 'list' ist bereits nach erstelltAm absteigend sortiert, daher entspricht die Reihenfolge
+    // der Gruppen automatisch dem jeweils neuesten Fahrzeug des Kunden
+    ordered.forEach(function(g){ g.kunde = g.orders[0].kunde; });
+    return ordered;
+  }
+
   function renderOrderChips(){
     var active = orders.filter(function(o){ return computeOrderProgress(o).percent !== 100; });
     var tags = ['In Bearbeitung','Bereit zur Auslieferung'];
@@ -1636,22 +1669,44 @@
     });
   }
 
-  function orderRowHtml(o){
+  function orderVehicleRowHtml(o){
     var prog = computeOrderProgress(o);
     var tag = orderTag(o);
+    return '<div class="auftrag-vehicle-row" data-vehicleoid="' + o.id + '">' +
+      plateChip(o.fahrzeug) +
+      '<span class="auftrag-tag tag-zahlung-' + (o.zahlungsart||'barkauf') + '">' + (ZAHLUNGSARTEN[o.zahlungsart] || o.zahlungsart) + '</span>' +
+      '<span class="auftrag-tag ' + tag.cls + '">' + tag.label + '</span>' +
+      '<div class="progress-wrap" style="flex:1;"><div class="progress-track">' +
+        '<div class="progress-fill' + (prog.percent>=100?' done':'') + '" style="width:' + prog.percent + '%"></div></div>' +
+        '<span class="progress-text">' + prog.done + '/' + prog.total + '</span></div>' +
+    '</div>';
+  }
+
+  function orderRowHtml(g){
+    var extraCount = g.orders.length - 1;
+    var main = g.orders[0]; // neuestes Fahrzeug dieses Kunden
+    var prog = computeOrderProgress(main);
+    var tag = orderTag(main);
+    var open = extraCount > 0 && expandedOrderId === g.key;
     var row =
-      '<tr class="row" data-oid="' + o.id + '">' +
-        '<td data-label="Kunde"><div class="kunde-name">' + escapeHtml(o.kunde) +
-          ' <span class="auftrag-tag ' + (o.kategorie==='gewerbe'?'tag-gewerbe':'tag-privat') + '" style="margin-left:4px; vertical-align:middle;">' + (o.kategorie==='gewerbe'?'Gewerbe':'Privat') + '</span>' +
-          ' <span class="auftrag-tag ' + fahrzeugtypTagClass(o.fahrzeugtyp) + '" style="margin-left:2px; vertical-align:middle;">' + (FAHRZEUGTYPEN[o.fahrzeugtyp] || 'Gebrauchtwagen') + '</span></div></td>' +
-        '<td data-label="Fahrzeug">' + plateChip(o.fahrzeug) + '</td>' +
-        '<td data-label="Zahlungsart"><span class="auftrag-tag tag-zahlung-' + (o.zahlungsart||'barkauf') + '">' + (ZAHLUNGSARTEN[o.zahlungsart] || o.zahlungsart) + '</span></td>' +
+      '<tr class="row" data-gkey="' + escapeHtml(g.key) + '">' +
+        '<td data-label="Kunde"><div class="kunde-name">' + escapeHtml(g.kunde) +
+          (extraCount > 0 ? '<span class="kunde-extra-badge">+' + extraCount + '</span>' : '') +
+          ' <span class="auftrag-tag ' + (main.kategorie==='gewerbe'?'tag-gewerbe':'tag-privat') + '" style="margin-left:4px; vertical-align:middle;">' + (main.kategorie==='gewerbe'?'Gewerbe':'Privat') + '</span>' +
+          ' <span class="auftrag-tag ' + fahrzeugtypTagClass(main.fahrzeugtyp) + '" style="margin-left:2px; vertical-align:middle;">' + (FAHRZEUGTYPEN[main.fahrzeugtyp] || 'Gebrauchtwagen') + '</span></div></td>' +
+        '<td data-label="Fahrzeug">' + plateChip(main.fahrzeug) + '</td>' +
+        '<td data-label="Zahlungsart"><span class="auftrag-tag tag-zahlung-' + (main.zahlungsart||'barkauf') + '">' + (ZAHLUNGSARTEN[main.zahlungsart] || main.zahlungsart) + '</span></td>' +
         '<td data-label="Status"><span class="auftrag-tag ' + tag.cls + '">' + tag.label + '</span></td>' +
         '<td data-label="Fortschritt"><div class="progress-wrap"><div class="progress-track">' +
           '<div class="progress-fill' + (prog.percent>=100?' done':'') + '" style="width:' + prog.percent + '%"></div></div>' +
           '<span class="progress-text">' + prog.done + '/' + prog.total + '</span></div></td>' +
-        '<td style="width:24px"><span class="chevron">›</span></td>' +
+        '<td style="width:24px"><span class="chevron' + (open?' open':'') + '">›</span></td>' +
       '</tr>';
+    if (open){
+      row += '<tr class="detail-row"><td colspan="6"><div class="auftrag-vehicles-panel">' +
+        g.orders.map(orderVehicleRowHtml).join('') +
+      '</div></td></tr>';
+    }
     return row;
   }
 
@@ -1783,12 +1838,27 @@
     } else if (filtered.length === 0){
       wrap.innerHTML = '<div class="empty"><h3>Keine Treffer</h3><p>Keine Aufträge entsprechen den aktuellen Filtern.</p></div>';
     } else {
+      var groups = groupOrdersByCustomer(filtered);
       wrap.innerHTML =
         '<table><thead><tr><th>Kunde</th><th>Fahrzeug</th><th>Zahlungsart</th><th>Status</th><th>Fortschritt</th><th></th></tr></thead>' +
-        '<tbody>' + filtered.map(orderRowHtml).join('') + '</tbody></table>';
+        '<tbody>' + groups.map(orderRowHtml).join('') + '</tbody></table>';
       document.querySelectorAll('#auftragWrap tr.row').forEach(function(tr){
         tr.addEventListener('click', function(){
-          openOrderDetailModal(tr.getAttribute('data-oid'));
+          var key = tr.getAttribute('data-gkey');
+          var g = groups.find(function(x){ return x.key === key; });
+          if (!g) return;
+          if (g.orders.length > 1){
+            expandedOrderId = (expandedOrderId === key) ? null : key;
+            renderOrders();
+          } else {
+            openOrderDetailModal(g.orders[0].id);
+          }
+        });
+      });
+      document.querySelectorAll('#auftragWrap [data-vehicleoid]').forEach(function(row){
+        row.addEventListener('click', function(e){
+          e.stopPropagation();
+          openOrderDetailModal(row.getAttribute('data-vehicleoid'));
         });
       });
     }

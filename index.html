@@ -366,6 +366,11 @@
   }
   .tab.active{ color:var(--ink); border-bottom-color:var(--amber); }
   .tab:hover{ color:var(--ink); }
+  .todo-tab-badge{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:16px; height:16px; margin-left:6px; border-radius:50%;
+    background:var(--red); color:#fff; font-size:11px; font-weight:700; line-height:1;
+  }
 
   /* Progress bar for Auftragsabwicklung */
   .progress-wrap{ display:flex; align-items:center; gap:8px; min-width:140px; }
@@ -487,7 +492,7 @@
 
   <div class="tabs">
     <button class="tab active" id="tabStart" data-view="start">Start</button>
-    <button class="tab" id="tabTodos" data-view="todos">To-Dos</button>
+    <button class="tab" id="tabTodos" data-view="todos">To-Dos<span id="todoTabBadge" class="todo-tab-badge" style="display:none;">!</span></button>
     <button class="tab" id="tabLeads" data-view="leads">Leads</button>
     <button class="tab" id="tabAuftraege" data-view="auftraege">Aufträge</button>
     <button class="tab" id="tabBestandskunden" data-view="bestandskunden">Bestandskunden</button>
@@ -834,12 +839,20 @@
     }
   }
 
+  function updateTodoTabBadge(){
+    var badge = document.getElementById('todoTabBadge');
+    if (!badge) return;
+    var hasOpenTodo = todos.some(function(t){ return !t.done; });
+    badge.style.display = hasOpenTodo ? '' : 'none';
+  }
+
   function loadTodos(){
     try {
       dbRef('todos').on('value', function(snapshot){
         var val = snapshot.val();
         todos = Array.isArray(val) ? val : (val ? Object.keys(val).map(function(k){ return val[k]; }) : []);
         todosLoaded = true;
+        updateTodoTabBadge();
         if (currentView === 'todos') renderTodos();
         if (currentView === 'start') renderStart();
         generateNachkaufTodos();
@@ -2634,6 +2647,7 @@
 
   function renderTodos(){
     var wrap = document.getElementById('todosWrap');
+    updateTodoTabBadge();
     if (!todosLoaded){ wrap.innerHTML = '<div class="loading">Lade To-Dos …</div>'; return; }
     var people = settings.zustaendige.slice();
     while (people.length < 2) people.push(null); // mindestens 2 Personen-Spalten, auch wenn (noch) niemand angelegt ist

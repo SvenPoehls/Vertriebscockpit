@@ -666,15 +666,15 @@
 
   var ORDER_STEPS = [
     { key:'vertragVorhanden',          label:'Bankvertrag unterschrieben',       relevant: function(o){ return o.zahlungsart !== 'barkauf'; } },
-    { key:'bestellungUnterschrieben',  label:'Bestellung unterschrieben',        relevant: function(){ return true; }, hasDate:true },
+    { key:'bestellungUnterschrieben',  label:'Bestellung unterschrieben',        relevant: function(){ return true; } },
     { key:'fahrzeugAngeliefert',       label:'Fahrzeug angeliefert',             relevant: function(){ return true; } },
     { key:'werkstattauftragGeschrieben', label:'Werkstattauftrag schreiben',     relevant: function(){ return true; }, assignable:true },
-    { key:'fahrzeugZugelassen',        label:'Fahrzeug zugelassen',              relevant: function(){ return true; } },
+    { key:'fahrzeugZugelassen',        label:'Fahrzeugzulassung',                relevant: function(){ return true; } },
     { key:'aufbereitet',               label:'Aufbereitungsauftrag geschrieben', relevant: function(){ return true; }, assignable:true },
     { key:'zahlungseingangGeprueft',   label:'Zahlungseingang prüfen',           relevant: function(){ return true; } },
     { key:'ankaufsvertragAusgedruckt', label:'Ankaufsvertrag ausgedruckt',       relevant: function(o){ return !!o.eigenzulassung; } },
-    { key:'auslieferungsterminFestgelegt', label:'Auslieferungstermin festgelegt', relevant: function(){ return true; }, hasDate:true, assignable:true },
-    { key:'fahrzeugAusgeliefert',      label:'Fahrzeug ausgeliefert',           relevant: function(){ return true; }, hasDate:true, hideDateField:true, assignable:true }
+    { key:'auslieferungsterminFestgelegt', label:'Auslieferungstermin festgelegt', relevant: function(){ return true; }, hasDate:true },
+    { key:'fahrzeugAusgeliefert',      label:'Fahrzeug ausgeliefert',           relevant: function(){ return true; }, hasDate:true, hideDateField:true }
   ];
 
   function uid(){
@@ -982,7 +982,7 @@
       eigenzulassung: false,
       inzahlungnahme: false,
       vertragVorhanden: false,
-      bestellungUnterschrieben: false, bestellungUnterschriebenDatum:'',
+      bestellungUnterschrieben: false,
       fahrzeugAngeliefert: false, fahrzeugAngeliefertDatum:'',
       werkstattauftragGeschrieben: false,
       fahrzeugZugelassen: false, fahrzeugZugelassenDatum:'',
@@ -1392,9 +1392,6 @@
         '<div class="field"><label>Zahlungsart</label><select id="wm_zahlungsart">' +
           Object.keys(ZAHLUNGSARTEN).map(function(k){ return '<option value="' + k + '">' + ZAHLUNGSARTEN[k] + '</option>'; }).join('') +
         '</select></div>' +
-        '<div class="field"><label>Eigenzulassung</label><select id="wm_eigenzulassung">' +
-          '<option value="false">Nein</option><option value="true">Ja</option>' +
-        '</select></div>' +
         '<div class="field"><label>Inzahlungnahme</label><select id="wm_inzahlungnahme">' +
           '<option value="false">Nein</option><option value="true">Ja</option>' +
         '</select></div>' +
@@ -1409,13 +1406,11 @@
     document.getElementById('overlay').addEventListener('click', function(e){ if (e.target.id === 'overlay') closeModal(); });
     document.getElementById('wm_save').addEventListener('click', function(){
       var zahlungsart = document.getElementById('wm_zahlungsart').value;
-      var eigenzulassung = document.getElementById('wm_eigenzulassung').value === 'true';
       var inzahlungnahme = document.getElementById('wm_inzahlungnahme').value === 'true';
       var hist = 'Status geändert: ' + STATUS.gewonnen.label;
       updateLead(lead.id, patch, hist).then(function(){
         var updatedLead = leads.find(function(l){ return l.id === lead.id; });
         var order = createOrderFromLead(updatedLead, zahlungsart);
-        order.eigenzulassung = eigenzulassung;
         order.inzahlungnahme = inzahlungnahme;
         persistOrders();
         closeModal();
@@ -1808,9 +1803,6 @@
         '<h4>Zahlung</h4>' +
         '<div class="field-grid">' +
           '<div class="field"><label>Zahlungsart</label><select data-ofield="zahlungsart">' + zahlOptions + '</select></div>' +
-          '<div class="field"><label>Eigenzulassung</label><select data-ofield="eigenzulassung">' +
-            '<option value="false"' + (!o.eigenzulassung?' selected':'') + '>Nein</option>' +
-            '<option value="true"' + (o.eigenzulassung?' selected':'') + '>Ja</option></select></div>' +
           '<div class="field"><label>Inzahlungnahme</label><select data-ofield="inzahlungnahme">' +
             '<option value="false"' + (!o.inzahlungnahme?' selected':'') + '>Nein</option>' +
             '<option value="true"' + (o.inzahlungnahme?' selected':'') + '>Ja</option></select></div>' +
@@ -2003,7 +1995,7 @@
       if (el.getAttribute('data-ofield') === 'newnote') return;
       el.addEventListener('change', function(){
         var field = el.getAttribute('data-ofield');
-        order[field] = (field === 'eigenzulassung' || field === 'inzahlungnahme') ? (el.value === 'true') : el.value;
+        order[field] = (field === 'inzahlungnahme') ? (el.value === 'true') : el.value;
         // wird erst mit 'Änderungen speichern' persistiert
       });
     });
@@ -2063,9 +2055,6 @@
         '</select></div>' +
         '<div class="field"><label>Zahlungsart</label><select id="om_zahlungsart">' +
           Object.keys(ZAHLUNGSARTEN).map(function(k){ return '<option value="' + k + '">' + ZAHLUNGSARTEN[k] + '</option>'; }).join('') +
-        '</select></div>' +
-        '<div class="field"><label>Eigenzulassung</label><select id="om_eigenzulassung">' +
-          '<option value="false">Nein</option><option value="true">Ja</option>' +
         '</select></div>' +
         '<div class="field"><label>Inzahlungnahme</label><select id="om_inzahlungnahme">' +
           '<option value="false">Nein</option><option value="true">Ja</option>' +
@@ -2140,7 +2129,6 @@
       var kategorie = document.getElementById('om_kategorie').value;
       var fahrzeugtyp = document.getElementById('om_fahrzeugtyp').value;
       var zahlungsart = document.getElementById('om_zahlungsart').value;
-      var eigenzulassung = document.getElementById('om_eigenzulassung').value === 'true';
       var inzahlungnahme = document.getElementById('om_inzahlungnahme').value === 'true';
 
       function finalizeOrder(linkedLead){
@@ -2148,7 +2136,6 @@
           ? Object.assign({}, linkedLead, { name:kunde, fahrzeug:fahrzeug, kategorie:kategorie, fahrzeugtyp:fahrzeugtyp })
           : { id:null, name:kunde, fahrzeug:fahrzeug, zustaendig:prefill.zustaendig||'', kategorie:kategorie, fahrzeugtyp:fahrzeugtyp };
         var order = createOrderFromLead(pseudo, zahlungsart);
-        order.eigenzulassung = eigenzulassung;
         order.inzahlungnahme = inzahlungnahme;
         persistOrders();
         renderOrders();

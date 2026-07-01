@@ -1814,9 +1814,6 @@
           '<div class="field"><label>Inzahlungnahme</label><select data-ofield="inzahlungnahme">' +
             '<option value="false"' + (!o.inzahlungnahme?' selected':'') + '>Nein</option>' +
             '<option value="true"' + (o.inzahlungnahme?' selected':'') + '>Ja</option></select></div>' +
-          (o.zahlungsart === 'leasing'
-            ? '<div class="field"><label>Leasing-Laufzeit (Monate)</label><input type="number" min="1" max="60" data-ofield="leasingLaufzeitMonate" value="' + (o.leasingLaufzeitMonate || 36) + '"></div>'
-            : '') +
         '</div>' +
         '<h4>Checkliste</h4>' +
         '<div class="checklist">' + checklist + '</div>' +

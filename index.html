@@ -675,7 +675,7 @@
     { key:'aufbereitet',               label:'Aufbereitungsauftrag geschrieben', relevant: function(){ return true; }, assignable:true },
     { key:'zahlungseingangGeprueft',   label:'Zahlungseingang prüfen',           relevant: function(){ return true; } },
     { key:'ankaufsvertragAusgedruckt', label:'Ankaufsvertrag ausgedruckt',       relevant: function(o){ return !!o.eigenzulassung; } },
-    { key:'auslieferungsterminFestgelegt', label:'Auslieferungstermin festgelegt', relevant: function(){ return true; }, hasDate:true },
+    { key:'auslieferungsterminFestgelegt', label:'Auslieferungstermin festgelegt', relevant: function(){ return true; } },
     { key:'fahrzeugAusgeliefert',      label:'Fahrzeug ausgeliefert',           relevant: function(){ return true; }, hasDate:true, hideDateField:true }
   ];
 
@@ -1005,7 +1005,7 @@
       aufbereitet: false,
       zahlungseingangGeprueft: false,
       ankaufsvertragAusgedruckt: false,
-      auslieferungsterminFestgelegt: false, auslieferungsterminFestgelegtDatum:'',
+      auslieferungsterminFestgelegt: false,
       fahrzeugAusgeliefert: false, fahrzeugAusgeliefertDatum:'',
       stepAssignee: {},
       notizen: [],

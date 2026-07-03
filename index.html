@@ -552,9 +552,8 @@
   }
 
   // ---------- Zugangscode-Sperre ----------
-  var ACCESS_CODE_DEFAULT = "Autohaus2026"; // wird nur verwendet, solange noch kein Code in der Datenbank gespeichert ist
   var GATE_KEY = "vc_zugang_freigegeben";
-  var currentAccessCode = ACCESS_CODE_DEFAULT;
+  var currentAccessCode = null; // wird ausschließlich aus der Datenbank geladen; ohne geladenen Code ist kein Zugang möglich
 
   // Statt des Klartext-Codes wird nur ein nicht umkehrbarer Hash im Browser gespeichert,
   // damit der eigentliche Zugangscode nicht über die Entwicklertools/localStorage auslesbar ist.
@@ -581,6 +580,10 @@
     var input = document.getElementById('gateInput');
     var errorEl = document.getElementById('gateError');
     function tryUnlock(){
+      if (!currentAccessCode){
+        errorEl.textContent = 'Zugangscode konnte nicht geladen werden — bitte Internetverbindung prüfen und Seite neu laden.';
+        return;
+      }
       if (input.value === currentAccessCode){
         hashCode(currentAccessCode).then(function(hash){
           try { window.localStorage.setItem(GATE_KEY, hash); } catch (e) { /* Speicherung optional */ }
@@ -598,6 +601,7 @@
   }
 
   function proceedAfterCodeCheck(){
+    if (!currentAccessCode){ showGate(); return; } // kein Code aus der Datenbank geladen -> kein Zugang möglich
     var savedHash = null;
     try { savedHash = window.localStorage.getItem(GATE_KEY); } catch (e) { /* kein localStorage verfügbar */ }
     hashCode(currentAccessCode).then(function(hash){

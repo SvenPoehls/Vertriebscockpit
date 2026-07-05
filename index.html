@@ -552,19 +552,9 @@
   }
 
   // ---------- Zugangscode-Sperre ----------
+  var ACCESS_CODE_DEFAULT = "Autohaus2026"; // wird nur verwendet, solange noch kein Code in der Datenbank gespeichert ist
   var GATE_KEY = "vc_zugang_freigegeben";
-  var currentAccessCode = null; // wird ausschließlich aus der Datenbank geladen; ohne geladenen Code ist kein Zugang möglich
-
-  // Statt des Klartext-Codes wird nur ein nicht umkehrbarer Hash im Browser gespeichert,
-  // damit der eigentliche Zugangscode nicht über die Entwicklertools/localStorage auslesbar ist.
-  function hashCode(str){
-    if (!(window.crypto && crypto.subtle && crypto.subtle.digest)){
-      return Promise.resolve('plain:' + str); // Fallback für sehr alte Browser/unsichere Kontexte
-    }
-    return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str)).then(function(buf){
-      return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2, '0'); }).join('');
-    });
-  }
+  var currentAccessCode = ACCESS_CODE_DEFAULT;
 
   function showGate(){
     document.body.innerHTML =
@@ -580,15 +570,9 @@
     var input = document.getElementById('gateInput');
     var errorEl = document.getElementById('gateError');
     function tryUnlock(){
-      if (!currentAccessCode){
-        errorEl.textContent = 'Zugangscode konnte nicht geladen werden — bitte Internetverbindung prüfen und Seite neu laden.';
-        return;
-      }
       if (input.value === currentAccessCode){
-        hashCode(currentAccessCode).then(function(hash){
-          try { window.localStorage.setItem(GATE_KEY, hash); } catch (e) { /* Speicherung optional */ }
-          location.reload();
-        });
+        try { window.localStorage.setItem(GATE_KEY, currentAccessCode); } catch (e) { /* Speicherung optional */ }
+        location.reload();
       } else {
         errorEl.textContent = 'Falscher Code — bitte erneut versuchen.';
         input.value = '';
@@ -601,16 +585,13 @@
   }
 
   function proceedAfterCodeCheck(){
-    if (!currentAccessCode){ showGate(); return; } // kein Code aus der Datenbank geladen -> kein Zugang möglich
-    var savedHash = null;
-    try { savedHash = window.localStorage.getItem(GATE_KEY); } catch (e) { /* kein localStorage verfügbar */ }
-    hashCode(currentAccessCode).then(function(hash){
-      if (savedHash === hash){
-        initMainApp();
-      } else {
-        showGate();
-      }
-    });
+    var savedCode = null;
+    try { savedCode = window.localStorage.getItem(GATE_KEY); } catch (e) { /* kein localStorage verfügbar */ }
+    if (savedCode === currentAccessCode){
+      initMainApp();
+    } else {
+      showGate();
+    }
   }
 
   // Aktuellen Zugangscode aus der Datenbank laden (mit Timeout-Fallback, falls keine Verbindung besteht)
@@ -1503,9 +1484,7 @@
       }
       dbRef('config/zugangscode').set(new1).then(function(){
         currentAccessCode = new1;
-        hashCode(new1).then(function(hash){
-          try { window.localStorage.setItem(GATE_KEY, hash); } catch (e) { /* Speicherung optional */ }
-        });
+        try { window.localStorage.setItem(GATE_KEY, new1); } catch (e) { /* Speicherung optional */ }
         closeModal();
         showToast('Zugangscode geändert — gilt sofort für alle Geräte');
       }).catch(function(){

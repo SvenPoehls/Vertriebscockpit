@@ -446,6 +446,17 @@
   .todo-row .todo-del{ background:none; border:none; color:var(--muted); cursor:pointer; font-size:12px; padding:0 2px; opacity:0; flex:none; }
   .todo-row:hover .todo-del{ opacity:1; }
   .todo-row .todo-del:hover{ color:var(--red); }
+  .todo-flag{ background:none; border:none; cursor:pointer; font-size:14px; padding:0 2px; flex:none; line-height:1.4; color:var(--muted); opacity:0.45; }
+  .todo-row:hover .todo-flag{ opacity:0.9; }
+  .todo-flag.prio-red{ color:var(--red); opacity:1; }
+  .todo-flag.prio-blue{ color:var(--steel); opacity:1; }
+  .todo-flag.prio-green{ color:var(--teal); opacity:1; }
+  .todo-flag-menu{ display:inline-flex; gap:4px; align-items:center; flex:none; }
+  .todo-flag-menu button{ background:none; border:none; cursor:pointer; font-size:15px; padding:0 1px; line-height:1; }
+  .todo-flag-menu .opt-red{ color:var(--red); }
+  .todo-flag-menu .opt-blue{ color:var(--steel); }
+  .todo-flag-menu .opt-green{ color:var(--teal); }
+  .todo-flag-menu .opt-clear{ color:var(--muted); font-size:13px; }
   .todo-newinput{
     width:100%; border:none; background:transparent; font-size:13px; padding:5px 2px; color:var(--muted);
     font-family:inherit; outline:none;
@@ -650,6 +661,7 @@
   var todos = [];
   var todoRemovalTimers = {};
   var todosLoaded = false;
+  var openFlagMenuId = null; // welches To-Do gerade sein Prioritäts-Flaggenmenü offen hat
   var loaded = false;
   var migrationDone = false;
   var loadError = false;
@@ -2395,9 +2407,22 @@
   function todoRowHtml(t){
     var dueHtml = (t.dueDate && (t.source === 'nachkauf' || t.source === 'leasingauslauf')) ? ' <span class="todo-due ' + todoDueClass(t) + '">' + fmtDate(t.dueDate) + '</span>' : '';
     var editable = t.source === 'manuell';
+    var prio = t.priority || '';
+    var flagHtml;
+    if (openFlagMenuId === t.id){
+      flagHtml = '<span class="todo-flag-menu">' +
+        '<button class="opt-red"   data-setprio="red"   data-todoid="' + t.id + '" title="Wichtig">⚑</button>' +
+        '<button class="opt-blue"  data-setprio="blue"  data-todoid="' + t.id + '" title="Mittel">⚑</button>' +
+        '<button class="opt-green" data-setprio="green" data-todoid="' + t.id + '" title="Niedrig">⚑</button>' +
+        '<button class="opt-clear" data-setprio=""      data-todoid="' + t.id + '" title="Keine Priorität">✕</button>' +
+      '</span>';
+    } else {
+      flagHtml = '<button class="todo-flag' + (prio?' prio-'+prio:'') + '" data-todoflag="' + t.id + '" title="Priorität setzen">⚑</button>';
+    }
     return '<div class="todo-row' + (t.done?' done':'') + '" data-todoid="' + t.id + '">' +
       '<input type="checkbox" data-todocheck="' + t.id + '"' + (t.done?' checked':'') + '>' +
       '<span class="todo-text"' + (editable ? ' data-todoedit="' + t.id + '" style="cursor:text;" title="Klicken zum Bearbeiten"' : '') + '>' + escapeHtml(t.title) + dueHtml + '</span>' +
+      flagHtml +
       '<button class="todo-del" data-tododel="' + t.id + '" title="Löschen">✕</button>' +
     '</div>';
   }
@@ -2513,6 +2538,22 @@
         if (todoRemovalTimers[id]){ clearTimeout(todoRemovalTimers[id]); delete todoRemovalTimers[id]; }
         todos = todos.filter(function(x){ return x.id !== id; });
         persistTodos();
+        renderTodos();
+      });
+    });
+    wrap.querySelectorAll('[data-todoflag]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = btn.getAttribute('data-todoflag');
+        openFlagMenuId = (openFlagMenuId === id) ? null : id;
+        renderTodos();
+      });
+    });
+    wrap.querySelectorAll('[data-setprio]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = btn.getAttribute('data-todoid');
+        var t = todos.find(function(x){ return x.id === id; });
+        if (t){ t.priority = btn.getAttribute('data-setprio'); persistTodos(); }
+        openFlagMenuId = null;
         renderTodos();
       });
     });

@@ -449,13 +449,13 @@
   .todo-flag{ background:none; border:none; cursor:pointer; font-size:14px; padding:0 2px; flex:none; line-height:1.4; color:var(--muted); opacity:0.45; }
   .todo-row:hover .todo-flag{ opacity:0.9; }
   .todo-flag.prio-red{ color:var(--red); opacity:1; }
-  .todo-flag.prio-blue{ color:var(--steel); opacity:1; }
-  .todo-flag.prio-green{ color:var(--teal); opacity:1; }
+  .todo-flag.prio-orange{ color:#E8862E; opacity:1; }
+  .todo-flag.prio-yellow{ color:#D9A400; opacity:1; }
   .todo-flag-menu{ display:inline-flex; gap:4px; align-items:center; flex:none; }
   .todo-flag-menu button{ background:none; border:none; cursor:pointer; font-size:15px; padding:0 1px; line-height:1; }
   .todo-flag-menu .opt-red{ color:var(--red); }
-  .todo-flag-menu .opt-blue{ color:var(--steel); }
-  .todo-flag-menu .opt-green{ color:var(--teal); }
+  .todo-flag-menu .opt-orange{ color:#E8862E; }
+  .todo-flag-menu .opt-yellow{ color:#D9A400; }
   .todo-flag-menu .opt-clear{ color:var(--muted); font-size:13px; }
   .todo-newinput{
     width:100%; border:none; background:transparent; font-size:13px; padding:5px 2px; color:var(--muted);
@@ -2411,10 +2411,10 @@
     var flagHtml;
     if (openFlagMenuId === t.id){
       flagHtml = '<span class="todo-flag-menu">' +
-        '<button class="opt-red"   data-setprio="red"   data-todoid="' + t.id + '" title="Wichtig">⚑</button>' +
-        '<button class="opt-blue"  data-setprio="blue"  data-todoid="' + t.id + '" title="Mittel">⚑</button>' +
-        '<button class="opt-green" data-setprio="green" data-todoid="' + t.id + '" title="Niedrig">⚑</button>' +
-        '<button class="opt-clear" data-setprio=""      data-todoid="' + t.id + '" title="Keine Priorität">✕</button>' +
+        '<button class="opt-red"    data-setprio="red"    data-todoid="' + t.id + '" title="Wichtig">⚑</button>' +
+        '<button class="opt-orange" data-setprio="orange" data-todoid="' + t.id + '" title="Mittel">⚑</button>' +
+        '<button class="opt-yellow" data-setprio="yellow" data-todoid="' + t.id + '" title="Niedrig">⚑</button>' +
+        '<button class="opt-clear"  data-setprio=""       data-todoid="' + t.id + '" title="Keine Priorität">✕</button>' +
       '</span>';
     } else {
       flagHtml = '<button class="todo-flag' + (prio?' prio-'+prio:'') + '" data-todoflag="' + t.id + '" title="Priorität setzen">⚑</button>';

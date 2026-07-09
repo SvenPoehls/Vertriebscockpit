@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
   :root{
     --paper:#ECEEF0;
@@ -551,9 +552,11 @@
   };
   var fbApp = null;
   var fbDb = null;
+  var fbAuth = null;
   try {
     fbApp = firebase.initializeApp(firebaseConfig);
     fbDb = firebase.database();
+    try { fbAuth = firebase.auth(); } catch (e) { /* Auth-SDK evtl. nicht geladen -> ohne Anmeldung fortfahren */ }
   } catch (e) {
     console.error('Firebase-Initialisierung fehlgeschlagen', e);
   }
@@ -561,6 +564,21 @@
     if (!fbDb) throw new Error('Keine Verbindung zur Datenbank');
     return fbDb.ref(path);
   }
+
+  // Anonyme Anmeldung: Jeder App-Nutzer wird automatisch (unsichtbar) bei Firebase angemeldet,
+  // damit die Datenbankregeln auf "nur angemeldete Nutzer" (auth != null) gestellt werden können.
+  // Solange die Regeln noch offen sind, funktioniert die App auch, falls die Anmeldung (noch) nicht klappt.
+  var authReady = new Promise(function(resolve){
+    if (!fbAuth){ resolve(); return; }
+    var done = false;
+    function finish(){ if (!done){ done = true; resolve(); } }
+    fbAuth.onAuthStateChanged(function(user){ if (user) finish(); });
+    fbAuth.signInAnonymously().catch(function(e){
+      console.error('Anonyme Anmeldung fehlgeschlagen (Regeln evtl. noch offen — App läuft trotzdem)', e);
+      finish();
+    });
+    setTimeout(finish, 5000); // nicht ewig blockieren, falls Auth nicht antwortet
+  });
 
   // ---------- Zugangscode-Sperre ----------
   var ACCESS_CODE_DEFAULT = "Autohaus2026"; // wird nur verwendet, solange noch kein Code in der Datenbank gespeichert ist
@@ -605,8 +623,9 @@
     }
   }
 
-  // Aktuellen Zugangscode aus der Datenbank laden (mit Timeout-Fallback, falls keine Verbindung besteht)
-  (function checkAccessCode(){
+  // Aktuellen Zugangscode aus der Datenbank laden (erst nach der anonymen Anmeldung,
+  // mit Timeout-Fallback, falls keine Verbindung besteht)
+  function checkAccessCode(){
     var resolved = false;
     function finish(code){
       if (resolved) return;
@@ -621,7 +640,8 @@
       }).catch(function(){ finish(null); });
     } catch (e) { finish(null); }
     setTimeout(function(){ finish(null); }, 4000); // bei sehr langsamer/fehlender Verbindung nicht ewig blockieren
-  })();
+  }
+  authReady.then(checkAccessCode);
 
   function initMainApp(){
   function setSyncStatus(text, ok){

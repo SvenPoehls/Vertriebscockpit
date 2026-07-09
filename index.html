@@ -305,7 +305,7 @@
   .hero h1{ font-family:var(--font-display); text-transform:uppercase; font-size:26px; margin:0 0 6px; letter-spacing:0.3px; }
   .hero p{ margin:0; opacity:0.8; font-size:13.5px; }
   .hero .hero-date{ font-family:var(--font-mono); font-size:12px; opacity:0.65; margin-top:10px; }
-  .start-kpis{ display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:24px; align-items:start; }
+  .start-kpis{ display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:24px; align-items:start; }
   .start-kpi{
     background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; cursor:pointer; transition:transform .12s;
   }
@@ -502,7 +502,7 @@
       <input type="text" class="search" id="search" placeholder="Suche nach Name, Fahrzeug …">
       <div class="chips" id="statusChips"></div>
       <div class="spacer"></div>
-      <div class="overdue-flag" id="overdueFlag" style="display:none;"></div>
+      <button class="btn btn-ghost" id="btnNewProbefahrt">+ Neue Probefahrt</button>
       <button class="btn btn-primary" id="btnNew">+ Neuer Lead</button>
     </div>
 
@@ -659,12 +659,13 @@
   var STATUS = {
     neu:         { label:'Neu',                color:'var(--neu-color)' },
     kontaktiert: { label:'Kontaktiert',         color:'var(--kontaktiert-color)' },
+    probefahrt:  { label:'Probefahrt',          color:'#8B5CF6'         },
     angebot:     { label:'Angebot verschickt',  color:'var(--amber)'    },
     verhandlung: { label:'In Verhandlung',      color:'var(--plum)'     },
     gewonnen:    { label:'Gewonnen',            color:'var(--teal)'     },
     verloren:    { label:'Verloren',            color:'var(--red)'      }
   };
-  var STATUS_ORDER = ['neu','kontaktiert','angebot','verhandlung','gewonnen','verloren'];
+  var STATUS_ORDER = ['neu','kontaktiert','probefahrt','angebot','verhandlung','gewonnen','verloren'];
   var QUELLEN = {
     email:'Email', telefon:'Telefon', autocrm:'AutoCRM',
     walkin:'Vor-Ort', sonstiges:'Sonstiges'
@@ -686,7 +687,6 @@
   var migrationDone = false;
   var loadError = false;
   var activeStatusFilter = '';
-  var overdueOnly = false;
   var searchTerm = '';
   var expandedId = null;
   var currentView = 'start';
@@ -739,7 +739,6 @@
     d.setMonth(d.getMonth() + months);
     return d.toISOString().slice(0,10);
   }
-  var STANDARD_WIEDERVORLAGE_TAGE = 2;
   function fmtDate(iso){
     if(!iso) return '—';
     var d = new Date(iso + 'T00:00:00');
@@ -751,14 +750,6 @@
     if (isNaN(d.getTime())) return iso;
     return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' · ' +
            d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
-  }
-  function isOverdue(lead){
-    if (!lead.wiedervorlage) return false;
-    if (lead.status === 'gewonnen' || lead.status === 'verloren') return false;
-    return lead.wiedervorlage <= todayISO();
-  }
-  function isToday(lead){
-    return lead.wiedervorlage === todayISO();
   }
   function escapeHtml(s){
     return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
@@ -933,7 +924,7 @@
         var newLead = {
           id: uid(), name:o.kunde, kategorie:o.kategorie||'privat', fahrzeugtyp:o.fahrzeugtyp||'gebraucht',
           fahrzeug:o.fahrzeug, quelle:'sonstiges', status:'gewonnen',
-          erstkontakt: o.erstelltAm ? o.erstelltAm.slice(0,10) : todayISO(), wiedervorlage:'', zustaendig:o.zustaendig||'',
+          probefahrtDatum:'', zustaendig:o.zustaendig||'',
           notizen:[], erstelltAm: o.erstelltAm || new Date().toISOString()
         };
         addHistory(newLead, 'Nachträglich angelegt zur Synchronisierung eines manuell erstellten Auftrags');
@@ -1064,9 +1055,8 @@
       fahrzeugtyp: data.fahrzeugtyp || 'gebraucht',
       fahrzeug: data.fahrzeug.trim(),
       quelle: data.quelle,
-      erstkontakt: data.erstkontakt || todayISO(),
       status: data.status || 'neu',
-      wiedervorlage: data.wiedervorlage || '',
+      probefahrtDatum: data.probefahrtDatum || '',
       zustaendig: (data.zustaendig || '').trim(),
       notizen: [],
       erstelltAm: new Date().toISOString()
@@ -1097,15 +1087,9 @@
     var lead = leads.find(function(l){ return l.id === id; });
     if (!lead || !text.trim()) return;
     addHistory(lead, text.trim());
-    var rescheduled = false;
-    if (lead.status !== 'gewonnen' && lead.status !== 'verloren'){
-      lead.wiedervorlage = addDaysISO(todayISO(), STANDARD_WIEDERVORLAGE_TAGE);
-      addHistory(lead, 'Wiedervorlage automatisch auf ' + fmtDate(lead.wiedervorlage) + ' gesetzt (' + STANDARD_WIEDERVORLAGE_TAGE + '-Tage-Rhythmus)');
-      rescheduled = true;
-    }
     await persist();
     render();
-    showToast(rescheduled ? 'Notiz hinzugefügt — neue Wiedervorlage in ' + STANDARD_WIEDERVORLAGE_TAGE + ' Tagen' : 'Notiz hinzugefügt');
+    showToast('Notiz hinzugefügt');
   }
 
   async function deleteLead(id){
@@ -1132,21 +1116,21 @@
 
   function loadDemoData(){
     var demo = [
-      { name:'Sören Albrecht', kategorie:'privat',  fahrzeug:'VW Golf GTI', quelle:'autocrm', status:'angebot', tageVor:6, wvTageVor:-1, zustaendig:'Mara' },
-      { name:'Jasmin Keller',  kategorie:'privat',  fahrzeug:'BMW 320d',    quelle:'autocrm', status:'kontaktiert', tageVor:2, wvTageVor:0, zustaendig:'Tim' },
-      { name:'Recep Yıldız',   kategorie:'privat',  fahrzeug:'Audi Q3',     quelle:'walkin', status:'verhandlung', tageVor:10, wvTageVor:2, zustaendig:'Mara' },
-      { name:'Petra Lindemann',kategorie:'privat',  fahrzeug:'Skoda Octavia Combi', quelle:'email', status:'neu', tageVor:0, wvTageVor:3, zustaendig:'' },
-      { name:'Finn Brauer',    kategorie:'privat',  fahrzeug:'Mercedes A 200', quelle:'sonstiges', status:'gewonnen', tageVor:18, wvTageVor:null, zustaendig:'Tim' },
-      { name:'Bauer Logistik GmbH', kategorie:'gewerbe', fahrzeug:'VW Crafter', quelle:'telefon', status:'gewonnen', tageVor:25, wvTageVor:null, zustaendig:'Mara' },
-      { name:'Theo Lemke',     kategorie:'privat',  fahrzeug:'Opel Corsa',  quelle:'sonstiges', status:'verloren', tageVor:14, wvTageVor:null, zustaendig:'Tim' }
+      { name:'Sören Albrecht', kategorie:'privat',  fahrzeug:'VW Golf GTI', quelle:'autocrm', status:'angebot', tageVor:6, pfTageVor:null, zustaendig:'Mara' },
+      { name:'Jasmin Keller',  kategorie:'privat',  fahrzeug:'BMW 320d',    quelle:'autocrm', status:'probefahrt', tageVor:2, pfTageVor:2, zustaendig:'Tim' },
+      { name:'Recep Yıldız',   kategorie:'privat',  fahrzeug:'Audi Q3',     quelle:'walkin', status:'verhandlung', tageVor:10, pfTageVor:null, zustaendig:'Mara' },
+      { name:'Petra Lindemann',kategorie:'privat',  fahrzeug:'Skoda Octavia Combi', quelle:'email', status:'neu', tageVor:0, pfTageVor:null, zustaendig:'' },
+      { name:'Finn Brauer',    kategorie:'privat',  fahrzeug:'Mercedes A 200', quelle:'sonstiges', status:'gewonnen', tageVor:18, pfTageVor:null, zustaendig:'Tim' },
+      { name:'Bauer Logistik GmbH', kategorie:'gewerbe', fahrzeug:'VW Crafter', quelle:'telefon', status:'gewonnen', tageVor:25, pfTageVor:null, zustaendig:'Mara' },
+      { name:'Theo Lemke',     kategorie:'privat',  fahrzeug:'Opel Corsa',  quelle:'sonstiges', status:'verloren', tageVor:14, pfTageVor:null, zustaendig:'Tim' }
     ];
     var now = new Date();
     demo.forEach(function(d){
       var ek = new Date(now); ek.setDate(ek.getDate() - d.tageVor);
       var lead = {
         id: uid(), name:d.name, kategorie:d.kategorie, fahrzeug:d.fahrzeug,
-        quelle:d.quelle, erstkontakt: ek.toISOString().slice(0,10), status:d.status,
-        wiedervorlage: d.wvTageVor == null ? '' : (function(){ var w=new Date(now); w.setDate(w.getDate()+d.wvTageVor); return w.toISOString().slice(0,10);})(),
+        quelle:d.quelle, status:d.status,
+        probefahrtDatum: d.pfTageVor == null ? '' : (function(){ var w=new Date(now); w.setDate(w.getDate()+d.pfTageVor); return w.toISOString().slice(0,10);})(),
         zustaendig:d.zustaendig, notizen:[], erstelltAm: ek.toISOString()
       };
       addHistory(lead, 'Lead angelegt (Quelle: ' + (QUELLEN[lead.quelle]||lead.quelle) + ')');
@@ -1168,20 +1152,16 @@
       } else if (l.status === 'gewonnen') {
         return false; // gewonnene Leads verschwinden aus der Standardansicht
       }
-      if (overdueOnly && !isOverdue(l)) return false;
       if (searchTerm){
         var hay = (l.name+' '+l.fahrzeug).toLowerCase();
         if (hay.indexOf(searchTerm.toLowerCase()) === -1) return false;
       }
       return true;
     }).sort(function(a,b){
-      var aHas = a.wiedervorlage ? 0 : 1, bHas = b.wiedervorlage ? 0 : 1;
-      if (aHas !== bHas) return aHas - bHas; // Leads mit Wiedervorlage immer zuerst
-      if (a.wiedervorlage && b.wiedervorlage){
-        var ao = isOverdue(a) ? 0 : 1, bo = isOverdue(b) ? 0 : 1;
-        if (ao !== bo) return ao - bo;
-        return a.wiedervorlage < b.wiedervorlage ? -1 : (a.wiedervorlage > b.wiedervorlage ? 1 : 0);
-      }
+      // Leads mit anstehendem Probefahrttermin zuerst (nach Termin aufsteigend), sonst neueste zuerst
+      var aPf = a.probefahrtDatum || '', bPf = b.probefahrtDatum || '';
+      if (!!aPf !== !!bPf) return aPf ? -1 : 1;
+      if (aPf && bPf && aPf !== bPf) return aPf < bPf ? -1 : 1;
       return b.erstelltAm.localeCompare(a.erstelltAm);
     });
   }
@@ -1205,20 +1185,6 @@
     });
   }
 
-  function renderOverdueFlag(){
-    var count = leads.filter(isOverdue).length;
-    var el = document.getElementById('overdueFlag');
-    if (count > 0){
-      el.style.display = 'flex';
-      el.innerHTML = '⏰ ' + count + ' fällige Wiedervorlage' + (count===1?'':'n');
-      el.style.cursor = 'pointer';
-      el.onclick = function(){ overdueOnly = !overdueOnly; render(); };
-      el.style.outline = overdueOnly ? '2px solid var(--red)' : 'none';
-    } else {
-      el.style.display = 'none';
-    }
-  }
-
   function plateChip(fahrzeug){
     if (!fahrzeug) return '<span style="color:var(--muted)">—</span>';
     return '<span class="plate"><span class="eu"><span>D</span><span class="stars">★★★</span></span>' +
@@ -1227,9 +1193,9 @@
 
   function rowHtml(l){
     var st = STATUS[l.status] || STATUS.neu;
-    var wvClass = isOverdue(l) ? 'wv-overdue' : (isToday(l) ? 'wv-today' : (l.wiedervorlage ? 'wv-upcoming' : ''));
-    var wvText = l.wiedervorlage ? fmtDate(l.wiedervorlage) + (isOverdue(l) ? ' · fällig' : (isToday(l)?' · heute':'')) : '';
-    var wvCell = l.wiedervorlage ? '<span class="wv-chip ' + wvClass + '">' + wvText + '</span>' : '<span style="color:var(--muted)">—</span>';
+    var pfCell = l.probefahrtDatum
+      ? '<span class="wv-chip" style="background:rgba(139,92,246,.15); color:#8B5CF6;">' + fmtDate(l.probefahrtDatum) + '</span>'
+      : '<span style="color:var(--muted)">—</span>';
     var open = expandedId === l.id;
     var row =
       '<tr class="row" data-id="' + l.id + '">' +
@@ -1240,8 +1206,7 @@
           ' <span class="auftrag-tag ' + fahrzeugtypTagClass(l.fahrzeugtyp) + '" style="margin-left:2px; vertical-align:middle;">' + (FAHRZEUGTYPEN[l.fahrzeugtyp] || 'Gebrauchtwagen') + '</span></div></td>' +
         '<td data-label="Fahrzeug">' + plateChip(l.fahrzeug) + '</td>' +
         '<td data-label="Quelle">' + escapeHtml(QUELLEN[l.quelle] || l.quelle || '—') + '</td>' +
-        '<td data-label="Erstkontakt" class="datetext">' + fmtDate(l.erstkontakt) + '</td>' +
-        '<td data-label="Wiedervorlage">' + wvCell + '</td>' +
+        '<td data-label="Probefahrt">' + pfCell + '</td>' +
         '<td style="width:24px"><span class="chevron' + (open?' open':'') + '">›</span></td>' +
       '</tr>';
     if (open) row += detailHtml(l);
@@ -1262,7 +1227,7 @@
         '<div class="field-grid">' +
           field('Fahrzeug','text','fahrzeug',l.fahrzeug) +
           '<div class="field"><label>Status</label><select data-field="status">' + statusOptions + '</select></div>' +
-          field('Wiedervorlage','date','wiedervorlage',l.wiedervorlage) +
+          field('Probefahrttermin','date','probefahrtDatum',l.probefahrtDatum) +
           '<div class="field"><label>Kategorie</label><select data-field="kategorie">' +
             '<option value="privat"' + (l.kategorie!=='gewerbe'?' selected':'') + '>Privatkunde</option>' +
             '<option value="gewerbe"' + (l.kategorie==='gewerbe'?' selected':'') + '>Gewerbekunde</option>' +
@@ -1294,7 +1259,6 @@
 
   function render(){
     renderChips();
-    renderOverdueFlag();
 
     var wrap = document.getElementById('tableWrap');
     if (!loaded){
@@ -1315,7 +1279,7 @@
     } else {
       wrap.innerHTML =
         '<table><thead><tr>' +
-          '<th>Status</th><th>Kunde</th><th>Fahrzeug</th><th>Quelle</th><th>Erstkontakt</th><th>Wiedervorlage</th><th></th>' +
+          '<th>Status</th><th>Kunde</th><th>Fahrzeug</th><th>Quelle</th><th>Probefahrt</th><th></th>' +
         '</tr></thead><tbody>' + filtered.map(rowHtml).join('') + '</tbody></table>';
 
       document.querySelectorAll('tr.row').forEach(function(tr){
@@ -1375,9 +1339,10 @@
   // ---------- New Lead Modal ----------
   function openNewModal(prefill){
     prefill = prefill || {};
+    var isProbefahrt = prefill.status === 'probefahrt';
     var html =
       '<div class="modal-overlay" id="overlay"><div class="modal">' +
-        '<h2>Neuer Lead</h2>' +
+        '<h2>' + (isProbefahrt ? 'Neue Probefahrt' : 'Neuer Lead') + '</h2>' +
         '<div class="field-grid">' +
           '<div class="field full"><label>Name *</label><input type="text" id="m_name" required autocomplete="off" value="' + escapeHtml(prefill.name||'') + '"></div>' +
           '<div class="field"><label>Kategorie</label><select id="m_kategorie">' +
@@ -1391,15 +1356,14 @@
             Object.keys(QUELLEN).map(function(k){ return '<option value="' + k + '"' + (prefill.quelle===k?' selected':'') + '>' + QUELLEN[k] + '</option>'; }).join('') +
           '</select></div>' +
           '<div class="field"><label>Status</label><select id="m_status">' +
-            STATUS_ORDER.map(function(s){ return '<option value="' + s + '">' + STATUS[s].label + '</option>'; }).join('') +
+            STATUS_ORDER.map(function(s){ return '<option value="' + s + '"' + (prefill.status===s?' selected':'') + '>' + STATUS[s].label + '</option>'; }).join('') +
           '</select></div>' +
-          '<div class="field"><label>Erstkontakt</label><input type="date" id="m_erstkontakt" value="' + todayISO() + '"></div>' +
-          '<div class="field"><label>Wiedervorlage</label><input type="date" id="m_wiedervorlage" value="' + addDaysISO(todayISO(), STANDARD_WIEDERVORLAGE_TAGE) + '"></div>' +
+          '<div class="field"><label>Probefahrttermin</label><input type="date" id="m_probefahrt" value="' + escapeHtml(prefill.probefahrtDatum || (isProbefahrt ? addDaysISO(todayISO(), 1) : '')) + '"></div>' +
           '<div class="field full"><label>Notiz (optional)</label><input type="text" id="m_notiz" placeholder="z. B. erste Anfrage zu Ausstattung & Preis"></div>' +
         '</div>' +
         '<div class="modal-actions">' +
           '<button class="btn btn-ghost" id="m_cancel">Abbrechen</button>' +
-          '<button class="btn btn-primary" id="m_save">Lead anlegen</button>' +
+          '<button class="btn btn-primary" id="m_save">' + (isProbefahrt ? 'Probefahrt anlegen' : 'Lead anlegen') + '</button>' +
         '</div>' +
       '</div></div>';
     document.getElementById('modalRoot').innerHTML = html;
@@ -1416,18 +1380,10 @@
         fahrzeug:fahrzeug,
         quelle: document.getElementById('m_quelle').value,
         status: document.getElementById('m_status').value,
-        erstkontakt: document.getElementById('m_erstkontakt').value,
-        wiedervorlage: document.getElementById('m_wiedervorlage').value,
+        probefahrtDatum: document.getElementById('m_probefahrt').value,
         notiz: document.getElementById('m_notiz').value
       });
       closeModal();
-    });
-    var wvTouched = false;
-    document.getElementById('m_wiedervorlage').addEventListener('input', function(){ wvTouched = true; });
-    document.getElementById('m_erstkontakt').addEventListener('change', function(e){
-      if (!wvTouched){
-        document.getElementById('m_wiedervorlage').value = addDaysISO(e.target.value, STANDARD_WIEDERVORLAGE_TAGE);
-      }
     });
 
     document.getElementById('m_name').focus();
@@ -2635,7 +2591,6 @@
     var heuteText = new Date().toLocaleDateString('de-DE', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
 
     var offeneLeads = leads.filter(function(l){ return l.status !== 'gewonnen' && l.status !== 'verloren'; }).length;
-    var faelligeWV = leads.filter(isOverdue).length;
     var aktiveAuftraege = orders.filter(function(o){ return computeOrderProgress(o).percent !== 100; }).length;
     var offeneTodosListe = todos.filter(function(t){ return !t.done; });
     var offeneTodos = offeneTodosListe.length;
@@ -2655,7 +2610,9 @@
       return computeOrderProgress(o).percent !== 100 && orderTag(o).label === 'Bereit zur Auslieferung';
     });
 
-    var faelligeLeadsListe = leads.filter(isOverdue).slice(0, 5);
+    var anstehendeProbefahrten = leads.filter(function(l){
+      return l.probefahrtDatum && l.status !== 'verloren';
+    }).sort(function(a,b){ return a.probefahrtDatum < b.probefahrtDatum ? -1 : 1; }).slice(0, 5);
 
     wrap.innerHTML =
       '<div class="hero">' +
@@ -2664,21 +2621,21 @@
       '</div>' +
       '<div class="start-kpis">' +
         '<div class="start-kpi" id="kpi-leads"><div class="kpi-label">Offene Leads</div><div class="kpi-value">' + offeneLeads + '</div></div>' +
-        '<div class="start-kpi" id="kpi-wv"><div class="kpi-label">Fällige Wiedervorlagen</div><div class="kpi-value" style="color:' + (faelligeWV>0?'var(--red)':'var(--ink)') + '">' + faelligeWV + '</div></div>' +
         '<div class="start-kpi" id="kpi-auftraege"><div class="kpi-label">Aufträge in Bearbeitung</div><div class="kpi-value">' + aktiveAuftraege + '</div></div>' +
         '<div class="start-kpi start-kpi-tall" id="kpi-todos"><div class="kpi-label">Offene To-Dos</div><div class="kpi-value">' + offeneTodos + '</div>' + todoBreakdownHtml + '</div>' +
       '</div>' +
       '<div class="start-actions">' +
         '<button class="btn btn-primary" id="start-newlead">+ Neuer Lead</button>' +
+        '<button class="btn btn-ghost" id="start-newprobefahrt">+ Neue Probefahrt</button>' +
         '<button class="btn btn-ghost" id="start-neworder">+ Auftrag anlegen</button>' +
       '</div>' +
       '<div class="stats-cols">' +
-        '<div class="start-section"><h3>Fällige Wiedervorlagen</h3>' +
-          (faelligeLeadsListe.length
-            ? faelligeLeadsListe.map(function(l){
-                return '<div class="start-list-item"><span>' + escapeHtml(l.name) + '</span><span style="color:var(--muted);">' + escapeHtml(l.fahrzeug||'') + '</span></div>';
+        '<div class="start-section"><h3>Anstehende Probefahrten</h3>' +
+          (anstehendeProbefahrten.length
+            ? anstehendeProbefahrten.map(function(l){
+                return '<div class="start-list-item"><span>' + escapeHtml(l.name) + ' · ' + escapeHtml(l.fahrzeug||'') + '</span><span style="color:#8B5CF6; font-weight:700;">' + fmtDate(l.probefahrtDatum) + '</span></div>';
               }).join('')
-            : '<div style="color:var(--muted); font-size:13px;">Keine fälligen Wiedervorlagen 🎉</div>') +
+            : '<div style="color:var(--muted); font-size:13px;">Keine Probefahrten geplant</div>') +
         '</div>' +
         '<div class="start-section"><h3>Bereit zur Auslieferung</h3>' +
           (bereitZurAuslieferung.length
@@ -2690,10 +2647,10 @@
       '</div>';
 
     document.getElementById('kpi-leads').addEventListener('click', function(){ switchView('leads'); });
-    document.getElementById('kpi-wv').addEventListener('click', function(){ switchView('leads'); });
     document.getElementById('kpi-auftraege').addEventListener('click', function(){ switchView('auftraege'); });
     document.getElementById('kpi-todos').addEventListener('click', function(){ switchView('todos'); });
-    document.getElementById('start-newlead').addEventListener('click', openNewModal);
+    document.getElementById('start-newlead').addEventListener('click', function(){ openNewModal(); });
+    document.getElementById('start-newprobefahrt').addEventListener('click', function(){ openNewModal({ status:'probefahrt' }); });
     document.getElementById('start-neworder').addEventListener('click', function(){ openNewOrderModal(); });
   }
 
@@ -2714,7 +2671,8 @@
 
 
   // ---------- Wiring ----------
-  document.getElementById('btnNew').addEventListener('click', openNewModal);
+  document.getElementById('btnNew').addEventListener('click', function(){ openNewModal(); });
+  document.getElementById('btnNewProbefahrt').addEventListener('click', function(){ openNewModal({ status:'probefahrt' }); });
   document.getElementById('fileImport').addEventListener('change', function(e){
     if (e.target.files && e.target.files[0]) importBackup(e.target.files[0]);
     e.target.value = '';
